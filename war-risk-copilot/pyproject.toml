@@ -1,0 +1,5 @@
+[project]
+name = "war-risk-copilot"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["fastapi", "uvicorn", "httpx", "h3>=4"]

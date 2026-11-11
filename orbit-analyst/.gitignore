@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+cache/media/live-*
+cache/notes.json
+cache/media/scan-*
+cache/live_tracks.json

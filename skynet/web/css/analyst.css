@@ -1,0 +1,78 @@
+/* Skynet · Analyst ask bar + answer card. Owner: I. Scoped under .an-* / #analyst-panel. */
+
+/* ---------- ask bar (inside #ask-mount in the top bar) ---------- */
+.an-ask { position: relative; width: 100%; max-width: 520px; margin: 0; }
+.an-field { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--r-pill, 999px);
+  background: var(--bg-3, #F2F2F2); border: 1px solid transparent; color: var(--text-2, #5D5D5D); cursor: text;
+  transition: background .15s, border-color .15s, box-shadow .15s; }
+.an-field:hover { background: #EDEDED; }
+.an-field:focus-within { background: var(--bg, #fff); border-color: var(--border-2, #D9D9D9); box-shadow: 0 0 0 3px rgba(31,111,235,.15); }
+.an-field svg.lucide { width: 14px; height: 14px; }
+.an-input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent;
+  font-size: var(--fs-13, 13px); color: var(--text, #292929); }
+.an-input::placeholder { color: var(--text-2, #5D5D5D); opacity: 1; }
+.an-input::-webkit-search-cancel-button { cursor: pointer; }
+
+.an-suggest { position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); z-index: 50; padding: 6px;
+  width: max(100%, min(420px, calc(100vw - 24px)));
+  background: var(--bg, #fff); border: 1px solid var(--border, #EAEAEA); border-radius: var(--r-card, 16px); box-shadow: var(--shadow-lg); }
+.an-suggest-title { padding: 8px 10px 4px; font-size: var(--fs-12, 12px); color: var(--text-2, #5D5D5D); }
+.an-sugg { display: flex; align-items: center; gap: 10px; width: 100%; min-height: var(--tap, 44px); padding: 0 10px; border: 0;
+  border-radius: var(--r-nav, 8px); background: transparent; text-align: left; font-size: var(--fs-13, 13px); color: var(--text, #292929); }
+.an-sugg:hover, .an-sugg:focus-visible { background: var(--bg-3, #F2F2F2); }
+.an-sugg svg.lucide { color: var(--text-3, #9E9E9E); }
+
+/* ---------- answer card (#analyst-panel is a fixed, click-through overlay) ---------- */
+.an-card { position: absolute; top: calc(12px + var(--topbar-h, 60px) + 10px); left: 50%; transform: translateX(-50%);
+  width: min(420px, calc(100vw - 24px)); max-height: calc(100vh - var(--topbar-h, 60px) - 48px); overflow: auto; scrollbar-width: thin;
+  padding: 16px 16px 12px 20px; border-radius: var(--r-card, 16px); box-shadow: var(--shadow-lg);
+  animation: an-in .2s var(--ease, ease-out); }
+@keyframes an-in { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+.an-head { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.an-head-text { flex: 1; min-width: 0; padding-top: 4px; }
+.an-kicker { display: flex; align-items: center; gap: 6px; font-size: var(--fs-12, 12px); font-weight: 500; color: var(--text-2, #5D5D5D); }
+.an-card .an-kicker svg.lucide { width: 14px; height: 14px; }
+.an-q { margin-top: 4px; font-size: var(--fs-13, 13px); color: var(--text-2, #5D5D5D); }
+.an-close { flex: none; width: var(--tap, 44px); height: var(--tap, 44px); margin: -6px -8px 0 0; border: 0; border-radius: 50%;
+  background: transparent; color: var(--text-2, #5D5D5D); display: inline-flex; align-items: center; justify-content: center; }
+.an-close:hover { background: var(--bg-3, #F2F2F2); color: var(--text, #292929); }
+
+.an-verdict { margin: 0 0 12px; font-size: var(--fs-14, 14px); font-weight: 500; line-height: 1.45; color: var(--text, #292929); }
+.an-muted { margin: 0 0 8px; font-size: var(--fs-13, 13px); color: var(--text-2, #5D5D5D); }
+.an-empty { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: var(--fs-12, 12px); font-weight: 500; color: var(--text-2, #5D5D5D); }
+.an-card .an-empty svg.lucide { width: 14px; height: 14px; }
+
+.an-risk { display: flex; align-items: baseline; gap: 6px; margin: 0 0 12px; }
+.an-risk-num { font-size: var(--fs-24, 24px); font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text, #292929); }
+.an-risk-of { font-size: var(--fs-13, 13px); color: var(--text-2, #5D5D5D); margin-right: 4px; }
+.an-risk .chip { align-self: center; text-transform: capitalize; }
+
+.an-reasons { margin: 0 0 14px; padding-left: 18px; font-size: var(--fs-13, 13px); line-height: 1.5; color: var(--text, #292929); }
+.an-reasons li + li { margin-top: 4px; }
+.an-reasons li::marker { color: var(--text-3, #9E9E9E); }
+
+.an-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.an-actions .btn { font-size: var(--fs-13, 13px); padding: 0 16px; white-space: normal; text-align: left; }
+
+.an-sources { margin-bottom: 10px; font-size: var(--fs-12, 12px); line-height: 1.6; color: var(--text-2, #5D5D5D); }
+.an-sources-label { font-weight: 500; margin-right: 2px; }
+.an-sources a { color: var(--text-2, #5D5D5D); text-decoration: underline; text-decoration-color: var(--border-2, #D9D9D9); text-underline-offset: 2px; }
+.an-sources a:hover { color: var(--text, #292929); text-decoration-color: currentColor; }
+
+.an-trace { border-top: 1px solid var(--border, #EAEAEA); padding-top: 4px; font-size: var(--fs-12, 12px); color: var(--text-2, #5D5D5D); }
+.an-trace summary { display: flex; align-items: center; gap: 6px; min-height: var(--tap, 44px); cursor: pointer; list-style: none; border-radius: var(--r-nav, 8px); }
+.an-trace summary::-webkit-details-marker { display: none; }
+.an-card .an-trace summary svg.lucide { width: 14px; height: 14px; transition: transform .15s; }
+.an-trace[open] summary svg.lucide { transform: rotate(90deg); }
+.an-trace ol { margin: 0 0 8px; padding-left: 18px; }
+.an-trace li { margin-bottom: 6px; }
+.an-trace li code { display: block; font-family: var(--mono); font-size: var(--fs-12, 12px); color: var(--text, #292929); word-break: break-word; }
+.an-engine { margin-bottom: 4px; }
+
+.an-loading { display: flex; align-items: center; gap: 10px; min-height: var(--tap, 44px); font-size: var(--fs-13, 13px); color: var(--text-2, #5D5D5D); }
+.an-card .an-loading svg.lucide { width: 20px; height: 20px; }
+.an-spin svg, svg.an-spin { animation: an-spin 0.9s linear infinite; }
+@keyframes an-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) { .an-card { animation: none; } svg.an-spin { animation-duration: 3s; } }

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skynet · Air traffic control and a black box, for the sea</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23292929'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='white' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='white' stroke-opacity='.45' stroke-width='1.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/detect.css">
+  <link rel="stylesheet" href="/css/alert.css">
+  <link rel="stylesheet" href="/css/zones.css">
+  <link rel="stylesheet" href="/css/report-mode.css">
+  <link rel="stylesheet" href="/css/analyst.css">
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+</head>
+<body data-mode="detect">
+  <div id="map" aria-label="Map"></div>
+
+  <header id="topbar">
+    <a class="tb-brand" href="/" aria-label="Skynet home">
+      <span class="tb-logo" aria-hidden="true"></span>
+      <span class="tb-name">Skynet</span>
+    </a>
+    <nav class="tb-modes" aria-label="Mode">
+      <button class="tb-mode" data-mode="detect" aria-pressed="true"><i data-lucide="radar"></i><span>Detect</span></button>
+      <button class="tb-mode" data-mode="alert" aria-pressed="false"><i data-lucide="bell"></i><span>Alert</span><span class="tb-badge" id="tb-alert-badge" hidden></span></button>
+      <button class="tb-mode" data-mode="report" aria-pressed="false"><i data-lucide="file-text"></i><span>Report</span></button>
+    </nav>
+    <label class="tb-case">
+      <span class="sr-only">Use case</span>
+      <i data-lucide="layers"></i>
+      <select id="case-select" aria-label="Use case"></select>
+    </label>
+    <div id="ask-mount"></div>
+    <div class="tb-clock" role="group" aria-label="Clock">
+      <button class="tb-icon" id="clock-play" aria-label="Pause"><i data-lucide="pause"></i></button>
+      <button class="tb-speed" id="clock-speed" aria-label="Playback speed">30×</button>
+      <span class="tb-time" id="clock-time" aria-live="off">--:--</span>
+    </div>
+    <div class="tb-links">
+      <a class="tb-link" href="/docs.html"><i data-lucide="braces"></i><span>API</span></a>
+      <button class="tb-link" id="reset-btn" title="Reset the demo data"><i data-lucide="rotate-ccw"></i><span>Reset</span></button>
+      <a class="tb-cta" href="/demo.html"><i data-lucide="play"></i><span>Demo</span></a>
+    </div>
+  </header>
+
+  <div id="case-banner" hidden></div>
+  <section id="detect" aria-label="Detect"></section>
+  <section id="alert" aria-label="Alert"></section>
+  <section id="zones" aria-label="Watch zones"></section>
+  <section id="report" aria-label="Report"></section>
+  <section id="analyst-panel" aria-label="Analyst answer"></section>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

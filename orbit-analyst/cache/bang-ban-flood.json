@@ -1,0 +1,303 @@
+{
+ "sensor": "sar",
+ "headline": "22 km² of new water",
+ "answer": "On 2026-09-27 radar shows **22 km² of new open water** in the box around Bang Ban, compared with 2026-08-10. That is **19% of the cropland in the box**. By 2026-10-01 it grew to **50 km²**. Water that was there before (rivers, ponds): 4.8 km². The colour image closest to the radar pass (2026-09-27) is **100% cloud** over the box; colour images in the after dates range from 28% to 100% cloud.",
+ "stats": [
+  {
+   "label": "New water",
+   "value": "22 km²"
+  },
+  {
+   "label": "Cropland flooded",
+   "value": "19%"
+  },
+  {
+   "label": "By 2026-10-01",
+   "value": "50 km²"
+  },
+  {
+   "label": "Cloud on 2026-09-27",
+   "value": "100%"
+  }
+ ],
+ "timeline": [
+  {
+   "date": "2026-09-03",
+   "km2": 2.3,
+   "orbit": "ascending"
+  },
+  {
+   "date": "2026-09-07",
+   "km2": 0.4,
+   "orbit": "descending"
+  },
+  {
+   "date": "2026-09-15",
+   "km2": 1.6,
+   "orbit": "ascending"
+  },
+  {
+   "date": "2026-09-19",
+   "km2": 1.4,
+   "orbit": "descending"
+  },
+  {
+   "date": "2026-09-27",
+   "km2": 22.2,
+   "orbit": "ascending"
+  },
+  {
+   "date": "2026-10-01",
+   "km2": 49.7,
+   "orbit": "descending"
+  }
+ ],
+ "images": {
+  "before": "/media/bang-ban-flood_before.png",
+  "after": "/media/bang-ban-flood_after.png",
+  "overlay": "/media/bang-ban-flood_overlay.png",
+  "before_label": "Radar · 2026-08-10",
+  "after_label": "Radar · 2026-09-27"
+ },
+ "legend": [
+  {
+   "color": "#00a0ff",
+   "label": "New water"
+  },
+  {
+   "color": "#3c6ec8",
+   "label": "Water before"
+  }
+ ],
+ "limits": [
+  "Radar sees open, calm water. It can miss water under trees, in narrow streets, and shallow water with rice plants standing out of it, so the real area can be larger.",
+  "Wind on the water and wet bare soil can look like water for one pass.",
+  "Pixels are 20 m, so it cannot see single flooded houses or roads. Built-up land in the box: 13 km².",
+  "Each number is one moment: the time of the satellite pass, not the flood peak."
+ ],
+ "sources": [
+  {
+   "id": "S1D_IW_GRDH_1SDV_20260810T112829_20260810T112854_004063_007671_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-08-10T11:28:41.616082Z",
+   "platform": "sentinel-1d",
+   "orbit": "ascending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20260810T112829_20260810T112854_004063_007671_rtc"
+  },
+  {
+   "id": "S1D_IW_GRDH_1SDV_20260927T112830_20260927T112855_004763_008EC4_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-09-27T11:28:43.181399Z",
+   "platform": "sentinel-1d",
+   "orbit": "ascending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20260927T112830_20260927T112855_004763_008EC4_rtc"
+  },
+  {
+   "id": "S1D_IW_GRDH_1SDV_20260903T112830_20260903T112855_004413_0082B1_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-09-03T11:28:42.509153Z",
+   "platform": "sentinel-1d",
+   "orbit": "ascending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20260903T112830_20260903T112855_004413_0082B1_rtc"
+  },
+  {
+   "id": "S1D_IW_GRDH_1SDV_20260907T230840_20260907T230905_004478_0084F9_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-09-07T23:08:52.944591Z",
+   "platform": "sentinel-1d",
+   "orbit": "descending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20260907T230840_20260907T230905_004478_0084F9_rtc"
+  },
+  {
+   "id": "S1D_IW_GRDH_1SDV_20260915T112830_20260915T112855_004588_0088BA_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-09-15T11:28:43.143030Z",
+   "platform": "sentinel-1d",
+   "orbit": "ascending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20260915T112830_20260915T112855_004588_0088BA_rtc"
+  },
+  {
+   "id": "S1D_IW_GRDH_1SDV_20260919T230840_20260919T230905_004653_008B05_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-09-19T23:08:53.317990Z",
+   "platform": "sentinel-1d",
+   "orbit": "descending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20260919T230840_20260919T230905_004653_008B05_rtc"
+  },
+  {
+   "id": "S1D_IW_GRDH_1SDV_20261001T230840_20261001T230905_004828_00911A_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-10-01T23:08:53.404151Z",
+   "platform": "sentinel-1d",
+   "orbit": "descending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20261001T230840_20261001T230905_004828_00911A_rtc"
+  },
+  {
+   "id": "S2B_MSIL2A_20260902T033529_R061_T47PPS_20260902T072724",
+   "collection": "sentinel-2-l2a",
+   "datetime": "2026-09-02T03:35:29.024000Z",
+   "platform": "Sentinel-2B",
+   "orbit": "descending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20260902T033529_R061_T47PPS_20260902T072724",
+   "cloud_pct": 76.9
+  },
+  {
+   "id": "S2C_MSIL2A_20260907T033531_R061_T47PPS_20260907T084110",
+   "collection": "sentinel-2-l2a",
+   "datetime": "2026-09-07T03:35:31.025000Z",
+   "platform": "Sentinel-2C",
+   "orbit": "descending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20260907T033531_R061_T47PPS_20260907T084110",
+   "cloud_pct": 30.6
+  },
+  {
+   "id": "S2A_MSIL2A_20260909T034201_R061_T47PPS_20260909T083015",
+   "collection": "sentinel-2-l2a",
+   "datetime": "2026-09-09T03:42:01.024000Z",
+   "platform": "Sentinel-2A",
+   "orbit": "descending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20260909T034201_R061_T47PPS_20260909T083015",
+   "cloud_pct": 28.1
+  },
+  {
+   "id": "S2B_MSIL2A_20260912T033529_R061_T47PPS_20260912T073504",
+   "collection": "sentinel-2-l2a",
+   "datetime": "2026-09-12T03:35:29.024000Z",
+   "platform": "Sentinel-2B",
+   "orbit": "descending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20260912T033529_R061_T47PPS_20260912T073504",
+   "cloud_pct": 58.4
+  },
+  {
+   "id": "ESA WorldCover 2021 v200",
+   "collection": "esa-worldcover",
+   "url": "https://planetarycomputer.microsoft.com/dataset/esa-worldcover"
+  },
+  {
+   "id": "OpenStreetMap Nominatim (place search)",
+   "collection": "osm",
+   "url": "https://nominatim.openstreetmap.org/"
+  }
+ ],
+ "markers": [],
+ "question": "Was the farmland at Bang Ban, Ayutthaya, Thailand flooded in September 2026? I need numbers for a crop insurance claim.",
+ "task": "flood",
+ "place": "Bang Ban, Ayutthaya, Thailand",
+ "lat": 14.4075,
+ "lon": 100.4686,
+ "bbox": [
+  100.4036,
+  14.3446,
+  100.5336,
+  14.4704
+ ],
+ "before": [
+  "2026-08-10",
+  "2026-08-31"
+ ],
+ "after": [
+  "2026-09-01",
+  "2026-09-30"
+ ],
+ "quote": {
+  "area_km2": 196.3,
+  "recommended": "sar",
+  "options": [
+   {
+    "kind": "sar",
+    "label": "SAR archive, 1 m spotlight",
+    "unit": "$450 per 25 km² scene × 8",
+    "price": 3600.0,
+    "why": "Sees through cloud and at night. Use when an archive pass already exists."
+   },
+   {
+    "kind": "sar",
+    "label": "SAR new tasking, 1 m spotlight",
+    "unit": "$675 per 25 km² scene × 8",
+    "price": 5400.0,
+    "why": "A new radar pass on the date you pick, through cloud."
+   },
+   {
+    "kind": "optical",
+    "label": "Optical archive, 50 cm",
+    "unit": "$8 per km² × 196.3 km²",
+    "price": 1570.3,
+    "why": "Colour image that shows single buildings and cars, if the sky was clear."
+   },
+   {
+    "kind": "optical",
+    "label": "Optical archive, 30 cm",
+    "unit": "$22.50 per km² × 196.3 km²",
+    "price": 4416.47,
+    "why": "The sharpest colour image. Small boats, vehicles and roof detail."
+   }
+  ],
+  "source": "SkyFi list prices (skyfi.com/pricing and FAQ). Optical minimum order 5 km².",
+  "note": "This is a quote only. No order is placed."
+ },
+ "seconds": 49.6,
+ "id": "bang-ban-flood",
+ "steps": [
+  {
+   "t": 0.0,
+   "kind": "step",
+   "text": "Read the question as a demo question: Bang Ban, Ayutthaya, Thailand."
+  },
+  {
+   "t": 0.0,
+   "kind": "step",
+   "text": "Checked the colour (Sentinel-2) images first, because colour is easier to read."
+  },
+  {
+   "t": 16.3,
+   "kind": "step",
+   "text": "Found 8 colour images after the start date. Cloud over the box: 28–100%."
+  },
+  {
+   "t": 16.3,
+   "kind": "decision",
+   "text": "Chose **radar (Sentinel-1)**, because it sees through cloud on every pass. Calm water is dark to radar."
+  },
+  {
+   "t": 17.2,
+   "kind": "step",
+   "text": "Found 11 radar passes. Before: 2026-08-10. After: 2026-09-27 (ascending pass, same orbit)."
+  },
+  {
+   "t": 17.2,
+   "kind": "step",
+   "text": "Read the VV radar band on a 20 m grid."
+  },
+  {
+   "t": 28.9,
+   "kind": "step",
+   "text": "Marked radar-dark pixels (VV below −17 dB) as open water. New water: 22 km²."
+  },
+  {
+   "t": 32.2,
+   "kind": "step",
+   "text": "Overlaid ESA WorldCover cropland (112 km²): 19% of it is newly under water."
+  },
+  {
+   "t": 49.3,
+   "kind": "step",
+   "text": "Measured the later radar passes too: 2026-09-03: 2.3 km², 2026-09-07: 0.4 km², 2026-09-15: 1.6 km², 2026-09-19: 1.4 km², 2026-09-27: 22 km², 2026-10-01: 50 km²."
+  },
+  {
+   "t": 49.5,
+   "kind": "step",
+   "text": "Drew the new water in blue over the radar images."
+  },
+  {
+   "t": 49.5,
+   "kind": "step",
+   "text": "The colour image closest to the radar pass (2026-09-27) is 100% cloud over the box."
+  },
+  {
+   "t": 49.6,
+   "kind": "done",
+   "text": "Done in 50 s."
+  }
+ ],
+ "cached": true
+}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skynet · Demo stage</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/demo.css">
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+</head>
+<body class="dm-body">
+  <div id="dm-map" aria-label="Map of the Gulf of Finland around Cable A"></div>
+  <div id="dm-flash" aria-hidden="true"></div>
+
+  <header class="dm-head">
+    <div class="dm-brand">
+      <span class="dm-logo" aria-hidden="true"></span>
+      <span class="dm-brand-name">Skynet</span>
+      <span class="dm-brand-tag">Air traffic control and a black box, for the sea.</span>
+    </div>
+    <div class="dm-title" id="dm-title" aria-live="polite">
+      <h1 id="dm-title-h">Cable A, Gulf of Finland</h1>
+      <p id="dm-title-p">What a ship claims, checked against what space observes.</p>
+      <p class="dm-hint" id="dm-hint"><kbd>→</kbd> or <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> to play a beat</p>
+    </div>
+    <div class="dm-clock"><i data-lucide="clock"></i><span id="dm-clock">11 Nov 2026</span></div>
+  </header>
+
+  <!-- Beat 1: the three space layers -->
+  <section class="dm-stack" id="dm-stack" aria-label="Space layers"></section>
+  <div class="dm-banner" id="dm-banner" role="status" hidden><i data-lucide="triangle-alert"></i><span id="dm-banner-t">Mismatch: dark vessel, likely anchor drag</span></div>
+
+  <!-- Beat 2: alert -->
+  <section class="dm-right" id="dm-right" aria-label="Alert"></section>
+  <section class="dm-phone" id="dm-phone" aria-label="Recipient phone" hidden></section>
+
+  <!-- Beat 3: evidence record -->
+  <article class="dm-paper" id="dm-paper" aria-label="Cable incident record" hidden></article>
+  <p class="dm-caption" id="dm-caption" hidden></p>
+
+  <footer class="dm-foot">
+    <p class="dm-illustrative">Illustrative reconstruction inspired by the 2024 Estlink 2 incident</p>
+    <nav class="dm-beats" aria-label="Demo beats">
+      <button class="dm-beat" data-beat="0" aria-pressed="false"><span class="dm-num">1</span><span>Detect</span><span class="dm-prog"><i></i></span></button>
+      <button class="dm-beat" data-beat="1" aria-pressed="false"><span class="dm-num">2</span><span>Alert</span><span class="dm-prog"><i></i></span></button>
+      <button class="dm-beat" data-beat="2" aria-pressed="false"><span class="dm-num">3</span><span>Prove</span><span class="dm-prog"><i></i></span></button>
+      <span class="dm-sep" aria-hidden="true"></span>
+      <button class="dm-reset" id="dm-reset" aria-label="Reset" title="Reset (R)"><i data-lucide="rotate-ccw"></i></button>
+    </nav>
+  </footer>
+
+  <script type="module" src="/js/demo.js"></script>
+</body>
+</html>

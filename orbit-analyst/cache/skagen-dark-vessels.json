@@ -1,0 +1,896 @@
+{
+ "sensor": "sar",
+ "headline": "42 ships, 12 without AIS",
+ "answer": "At 6 Nov 2026 16:53 UTC radar shows **42 ships** on the open sea in the box off Skagen. **30 match** a Danish Maritime Authority AIS position. **12 have no AIS** and are flagged: all 12 are small, weak targets (the return of a boat under about 30 m). There are **no large dark ships**. 8 AIS ships on the open sea have no radar target; 5 of them are under 30 m or send no length.",
+ "stats": [
+  {
+   "label": "Radar targets",
+   "value": "42"
+  },
+  {
+   "label": "Match AIS",
+   "value": "30"
+  },
+  {
+   "label": "No AIS",
+   "value": "12"
+  },
+  {
+   "label": "Large dark ships",
+   "value": "0"
+  }
+ ],
+ "timeline": [],
+ "images": {
+  "before": "/media/skagen-dark-vessels_before.png",
+  "after": "/media/skagen-dark-vessels_after.png",
+  "overlay": "/media/skagen-dark-vessels_overlay.png",
+  "before_label": "Open sea the agent searched",
+  "after_label": "Radar · 6 Nov 2026 16:53 UTC"
+ },
+ "legend": [
+  {
+   "color": "#28c878",
+   "label": "Has AIS"
+  },
+  {
+   "color": "#ff4632",
+   "label": "No AIS"
+  }
+ ],
+ "limits": [
+  "Boats under about 15 m and wooden or fibreglass boats are often too faint for 10 m radar.",
+  "Size comes from the total radar return. A fast large ship smears and can look small (2 of the 30 AIS ships here did), and ships side by side can merge.",
+  "A moving ship can appear a few hundred metres from its true place along the satellite track.",
+  "Waves, wind farms, buoys and platforms can look like ships. Land and 250 m of coast are masked.",
+  "AIS data in this demo covers only the Skagen extract for 6 Nov 2026."
+ ],
+ "sources": [
+  {
+   "id": "S1C_IW_GRDH_1SDV_20261106T165300_20261106T165325_010219_014681_rtc",
+   "collection": "sentinel-1-rtc",
+   "datetime": "2026-11-06T16:53:13.389865Z",
+   "platform": "sentinel-1c",
+   "orbit": "ascending",
+   "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1C_IW_GRDH_1SDV_20261106T165300_20261106T165325_010219_014681_rtc"
+  },
+  {
+   "id": "ESA WorldCover 2021 v200 (land mask)",
+   "collection": "esa-worldcover",
+   "url": "https://planetarycomputer.microsoft.com/dataset/esa-worldcover"
+  },
+  {
+   "id": "Danish Maritime Authority AIS, aisdk-2026-11-06",
+   "collection": "ais",
+   "url": "http://aisdata.ais.dk/"
+  },
+  {
+   "id": "OpenStreetMap Nominatim (place search)",
+   "collection": "osm",
+   "url": "https://nominatim.openstreetmap.org/"
+  }
+ ],
+ "markers": [
+  {
+   "lat": 57.85301,
+   "lon": 10.67938,
+   "status": "ais",
+   "peak_db": 4.6,
+   "rcs_db": 35.1,
+   "length_m": 51,
+   "size": "large",
+   "ais": {
+    "mmsi": "259284000",
+    "name": "WILSON ECO III",
+    "type": "Cargo",
+    "length": "90",
+    "sog": "10.6"
+   },
+   "fx": 0.46957,
+   "fy": 0.03918
+  },
+  {
+   "lat": 57.85007,
+   "lon": 10.64785,
+   "status": "dark",
+   "peak_db": -6.9,
+   "rcs_db": 23.2,
+   "length_m": 75,
+   "size": "small",
+   "ais": null,
+   "fx": 0.41685,
+   "fy": 0.05085
+  },
+  {
+   "lat": 57.85228,
+   "lon": 10.40728,
+   "status": "ais",
+   "peak_db": -7.6,
+   "rcs_db": 20.9,
+   "length_m": 40,
+   "size": "small",
+   "ais": {
+    "mmsi": "636093386",
+    "name": "ROSTRUM SAO PAULO",
+    "type": "Cargo",
+    "length": "180",
+    "sog": "12.1"
+   },
+   "fx": 0.0126,
+   "fy": 0.05323
+  },
+  {
+   "lat": 57.84245,
+   "lon": 10.778,
+   "status": "ais",
+   "peak_db": 18.2,
+   "rcs_db": 50.6,
+   "length_m": 147,
+   "size": "large",
+   "ais": {
+    "mmsi": "256047000",
+    "name": "MINERVA AMORGOS",
+    "type": "Tanker",
+    "length": "293",
+    "sog": "1.1"
+   },
+   "fx": 0.63609,
+   "fy": 0.07124
+  },
+  {
+   "lat": 57.81873,
+   "lon": 10.70338,
+   "status": "ais",
+   "peak_db": -8.4,
+   "rcs_db": 18.7,
+   "length_m": 37,
+   "size": "small",
+   "ais": {
+    "mmsi": "352003737",
+    "name": "SANTIYA",
+    "type": "Cargo",
+    "length": "190",
+    "sog": "10.6"
+   },
+   "fx": 0.5126,
+   "fy": 0.1572
+  },
+  {
+   "lat": 57.81706,
+   "lon": 10.53441,
+   "status": "ais",
+   "peak_db": -4.6,
+   "rcs_db": 23.5,
+   "length_m": 40,
+   "size": "small",
+   "ais": {
+    "mmsi": "219007034",
+    "name": "SILJE-SOFIE S123",
+    "type": "Fishing",
+    "length": "14",
+    "sog": "4.4"
+   },
+   "fx": 0.22865,
+   "fy": 0.17052
+  },
+  {
+   "lat": 57.81254,
+   "lon": 10.76028,
+   "status": "dark",
+   "peak_db": -8.0,
+   "rcs_db": 20.6,
+   "length_m": 51,
+   "size": "small",
+   "ais": null,
+   "fx": 0.60877,
+   "fy": 0.17601
+  },
+  {
+   "lat": 57.79701,
+   "lon": 10.75567,
+   "status": "ais",
+   "peak_db": 8.7,
+   "rcs_db": 42.1,
+   "length_m": 139,
+   "size": "large",
+   "ais": {
+    "mmsi": "255915690",
+    "name": "SWAN BALTIC",
+    "type": "Tanker",
+    "length": "116",
+    "sog": "11.7"
+   },
+   "fx": 0.60228,
+   "fy": 0.23022
+  },
+  {
+   "lat": 57.79763,
+   "lon": 10.41207,
+   "status": "ais",
+   "peak_db": 5.8,
+   "rcs_db": 35.3,
+   "length_m": 46,
+   "size": "large",
+   "ais": {
+    "mmsi": "231251000",
+    "name": "HAV STREYM",
+    "type": "Cargo",
+    "length": "83",
+    "sog": "11.3"
+   },
+   "fx": 0.02422,
+   "fy": 0.24298
+  },
+  {
+   "lat": 57.78782,
+   "lon": 10.79152,
+   "status": "ais",
+   "peak_db": 3.9,
+   "rcs_db": 37.1,
+   "length_m": 166,
+   "size": "large",
+   "ais": {
+    "mmsi": "245315000",
+    "name": "MOEZELBORG",
+    "type": "Cargo",
+    "length": "135",
+    "sog": "9.7"
+   },
+   "fx": 0.66335,
+   "fy": 0.2604
+  },
+  {
+   "lat": 57.78119,
+   "lon": 10.59246,
+   "status": "dark",
+   "peak_db": -9.4,
+   "rcs_db": 17.3,
+   "length_m": 37,
+   "size": "small",
+   "ais": null,
+   "fx": 0.3289,
+   "fy": 0.29269
+  },
+  {
+   "lat": 57.77974,
+   "lon": 10.57093,
+   "status": "dark",
+   "peak_db": -6.3,
+   "rcs_db": 22.1,
+   "length_m": 45,
+   "size": "small",
+   "ais": null,
+   "fx": 0.29278,
+   "fy": 0.29866
+  },
+  {
+   "lat": 57.77032,
+   "lon": 10.54777,
+   "status": "dark",
+   "peak_db": 0.7,
+   "rcs_db": 31.9,
+   "length_m": 70,
+   "size": "small",
+   "ais": null,
+   "fx": 0.25447,
+   "fy": 0.33238
+  },
+  {
+   "lat": 57.7578,
+   "lon": 10.71058,
+   "status": "ais",
+   "peak_db": -5.5,
+   "rcs_db": 21.6,
+   "length_m": 46,
+   "size": "small",
+   "ais": {
+    "mmsi": "220339000",
+    "name": "R 60 TASMANIA",
+    "type": "Fishing",
+    "length": "17",
+    "sog": "5.3"
+   },
+   "fx": 0.52955,
+   "fy": 0.3686
+  },
+  {
+   "lat": 57.74891,
+   "lon": 10.94033,
+   "status": "ais",
+   "peak_db": 13.8,
+   "rcs_db": 43.9,
+   "length_m": 44,
+   "size": "large",
+   "ais": {
+    "mmsi": "226335000",
+    "name": "ILE DE BREHAT",
+    "type": "Other",
+    "length": "140",
+    "sog": "9.4"
+   },
+   "fx": 0.91726,
+   "fy": 0.388
+  },
+  {
+   "lat": 57.74128,
+   "lon": 10.77069,
+   "status": "ais",
+   "peak_db": 13.6,
+   "rcs_db": 44.1,
+   "length_m": 45,
+   "size": "large",
+   "ais": {
+    "mmsi": "636022414",
+    "name": "LC PLANCHET",
+    "type": "Cargo",
+    "length": "229",
+    "sog": "0.1"
+   },
+   "fx": 0.63215,
+   "fy": 0.42316
+  },
+  {
+   "lat": 57.72356,
+   "lon": 10.63386,
+   "status": "ais",
+   "peak_db": -7.1,
+   "rcs_db": 19.7,
+   "length_m": 41,
+   "size": "small",
+   "ais": {
+    "mmsi": "220343000",
+    "name": "SOFIE LYKKE",
+    "type": "Fishing",
+    "length": "16",
+    "sog": "6.0"
+   },
+   "fx": 0.40296,
+   "fy": 0.49114
+  },
+  {
+   "lat": 57.72076,
+   "lon": 10.65415,
+   "status": "ais",
+   "peak_db": -6.6,
+   "rcs_db": 21.3,
+   "length_m": 44,
+   "size": "small",
+   "ais": {
+    "mmsi": "220073000",
+    "name": "TANJA ND80",
+    "type": "Fishing",
+    "length": "16",
+    "sog": "0.8"
+   },
+   "fx": 0.43738,
+   "fy": 0.49995
+  },
+  {
+   "lat": 57.71446,
+   "lon": 10.92712,
+   "status": "dark",
+   "peak_db": -6.2,
+   "rcs_db": 24.7,
+   "length_m": 88,
+   "size": "small",
+   "ais": null,
+   "fx": 0.89808,
+   "fy": 0.50842
+  },
+  {
+   "lat": 57.71421,
+   "lon": 10.76175,
+   "status": "ais",
+   "peak_db": 1.3,
+   "rcs_db": 29.6,
+   "length_m": 35,
+   "size": "small",
+   "ais": {
+    "mmsi": "219032932",
+    "name": "SKAWLINK V",
+    "type": "Tug",
+    "length": "25",
+    "sog": "8.3"
+   },
+   "fx": 0.6193,
+   "fy": 0.51764
+  },
+  {
+   "lat": 57.71511,
+   "lon": 10.65826,
+   "status": "ais",
+   "peak_db": 1.1,
+   "rcs_db": 29.8,
+   "length_m": 46,
+   "size": "small",
+   "ais": {
+    "mmsi": "219017733",
+    "name": "SKAWLINK4",
+    "type": "Towing",
+    "length": "24",
+    "sog": "10.2"
+   },
+   "fx": 0.44474,
+   "fy": 0.51938
+  },
+  {
+   "lat": 57.70757,
+   "lon": 10.92592,
+   "status": "ais",
+   "peak_db": 9.6,
+   "rcs_db": 44.6,
+   "length_m": 237,
+   "size": "large",
+   "ais": {
+    "mmsi": "538009858",
+    "name": "MARO MARO",
+    "type": "Cargo",
+    "length": "199",
+    "sog": "10.6"
+   },
+   "fx": 0.89669,
+   "fy": 0.53241
+  },
+  {
+   "lat": 57.71166,
+   "lon": 10.60501,
+   "status": "dark",
+   "peak_db": -5.2,
+   "rcs_db": 26.8,
+   "length_m": 97,
+   "size": "small",
+   "ais": null,
+   "fx": 0.35521,
+   "fy": 0.53375
+  },
+  {
+   "lat": 57.7114,
+   "lon": 10.5907,
+   "status": "ais",
+   "peak_db": -5.1,
+   "rcs_db": 24.4,
+   "length_m": 75,
+   "size": "small",
+   "ais": {
+    "mmsi": "259223000",
+    "name": "KNESTER",
+    "type": "Fishing",
+    "length": "75",
+    "sog": "0.0"
+   },
+   "fx": 0.33111,
+   "fy": 0.53529
+  },
+  {
+   "lat": 57.70599,
+   "lon": 10.86081,
+   "status": "dark",
+   "peak_db": -8.3,
+   "rcs_db": 20.1,
+   "length_m": 55,
+   "size": "small",
+   "ais": null,
+   "fx": 0.78702,
+   "fy": 0.54131
+  },
+  {
+   "lat": 57.69973,
+   "lon": 10.644,
+   "status": "ais",
+   "peak_db": 11.8,
+   "rcs_db": 44.5,
+   "length_m": 143,
+   "size": "large",
+   "ais": {
+    "mmsi": "258202000",
+    "name": "NORTHERN PHOENIX",
+    "type": "Tanker",
+    "length": "130",
+    "sog": "0.0"
+   },
+   "fx": 0.42187,
+   "fy": 0.57347
+  },
+  {
+   "lat": 57.69826,
+   "lon": 10.69488,
+   "status": "ais",
+   "peak_db": 13.6,
+   "rcs_db": 48.6,
+   "length_m": 246,
+   "size": "large",
+   "ais": {
+    "mmsi": "219355000",
+    "name": "AMAK SWAN",
+    "type": "Tanker",
+    "length": "93",
+    "sog": "0.0"
+   },
+   "fx": 0.50782,
+   "fy": 0.57625
+  },
+  {
+   "lat": 57.69739,
+   "lon": 10.66784,
+   "status": "ais",
+   "peak_db": 8.4,
+   "rcs_db": 44.0,
+   "length_m": 210,
+   "size": "large",
+   "ais": {
+    "mmsi": "636019884",
+    "name": "ARRHENIUS",
+    "type": "Tanker",
+    "length": "173",
+    "sog": "0.0"
+   },
+   "fx": 0.46226,
+   "fy": 0.58051
+  },
+  {
+   "lat": 57.68797,
+   "lon": 10.70978,
+   "status": "ais",
+   "peak_db": 22.6,
+   "rcs_db": 55.6,
+   "length_m": 220,
+   "size": "large",
+   "ais": {
+    "mmsi": "257956000",
+    "name": "FRIDA KNUTSEN",
+    "type": "Tanker",
+    "length": "277",
+    "sog": "0.0"
+   },
+   "fx": 0.53376,
+   "fy": 0.6113
+  },
+  {
+   "lat": 57.68552,
+   "lon": 10.65631,
+   "status": "ais",
+   "peak_db": 14.7,
+   "rcs_db": 49.2,
+   "length_m": 180,
+   "size": "large",
+   "ais": {
+    "mmsi": "248565000",
+    "name": "DENSA TIGER",
+    "type": "Cargo",
+    "length": "189",
+    "sog": "0.0"
+   },
+   "fx": 0.44374,
+   "fy": 0.62232
+  },
+  {
+   "lat": 57.68407,
+   "lon": 10.68032,
+   "status": "ais",
+   "peak_db": 23.4,
+   "rcs_db": 54.5,
+   "length_m": 132,
+   "size": "large",
+   "ais": {
+    "mmsi": "311000820",
+    "name": "ALFA FINLANDIA",
+    "type": "Tanker",
+    "length": "237",
+    "sog": "0.1"
+   },
+   "fx": 0.48436,
+   "fy": 0.62623
+  },
+  {
+   "lat": 57.6646,
+   "lon": 10.64891,
+   "status": "ais",
+   "peak_db": 24.7,
+   "rcs_db": 54.9,
+   "length_m": 49,
+   "size": "large",
+   "ais": {
+    "mmsi": "319192200",
+    "name": "FASSA",
+    "type": "Cargo",
+    "length": "189",
+    "sog": "0.0"
+   },
+   "fx": 0.43284,
+   "fy": 0.69533
+  },
+  {
+   "lat": 57.65492,
+   "lon": 10.72703,
+   "status": "ais",
+   "peak_db": 19.5,
+   "rcs_db": 53.6,
+   "length_m": 253,
+   "size": "large",
+   "ais": {
+    "mmsi": "257998000",
+    "name": "BODIL KNUTSEN",
+    "type": "Tanker",
+    "length": "285",
+    "sog": "0.0"
+   },
+   "fx": 0.56553,
+   "fy": 0.72535
+  },
+  {
+   "lat": 57.65478,
+   "lon": 10.60964,
+   "status": "ais",
+   "peak_db": 15.5,
+   "rcs_db": 49.0,
+   "length_m": 153,
+   "size": "large",
+   "ais": {
+    "mmsi": "266212000",
+    "name": "NORDEN",
+    "type": "Tanker",
+    "length": "80",
+    "sog": "0.0"
+   },
+   "fx": 0.36729,
+   "fy": 0.73122
+  },
+  {
+   "lat": 57.6413,
+   "lon": 10.68297,
+   "status": "ais",
+   "peak_db": 29.3,
+   "rcs_db": 61.3,
+   "length_m": 143,
+   "size": "large",
+   "ais": {
+    "mmsi": "248020000",
+    "name": "SOLA TS",
+    "type": "Tanker",
+    "length": "250",
+    "sog": "0.1"
+   },
+   "fx": 0.49217,
+   "fy": 0.77476
+  },
+  {
+   "lat": 57.6313,
+   "lon": 10.73159,
+   "status": "ais",
+   "peak_db": 15.4,
+   "rcs_db": 47.3,
+   "length_m": 64,
+   "size": "large",
+   "ais": {
+    "mmsi": "636025970",
+    "name": "ORWELL",
+    "type": "Tanker",
+    "length": "183",
+    "sog": "0.0"
+   },
+   "fx": 0.57512,
+   "fy": 0.8072
+  },
+  {
+   "lat": 57.62184,
+   "lon": 10.65509,
+   "status": "ais",
+   "peak_db": 14.7,
+   "rcs_db": 46.8,
+   "length_m": 166,
+   "size": "large",
+   "ais": {
+    "mmsi": "241875000",
+    "name": "ITHAKI DF",
+    "type": "Tanker",
+    "length": "250",
+    "sog": "0.0"
+   },
+   "fx": 0.44657,
+   "fy": 0.84367
+  },
+  {
+   "lat": 57.6134,
+   "lon": 10.88727,
+   "status": "dark",
+   "peak_db": -8.5,
+   "rcs_db": 22.0,
+   "length_m": 78,
+   "size": "small",
+   "ais": null,
+   "fx": 0.83977,
+   "fy": 0.86166
+  },
+  {
+   "lat": 57.61528,
+   "lon": 10.56633,
+   "status": "ais",
+   "peak_db": 13.4,
+   "rcs_db": 44.5,
+   "length_m": 65,
+   "size": "large",
+   "ais": {
+    "mmsi": "311001913",
+    "name": "GREENSEA ARACENA",
+    "type": "Cargo",
+    "length": "139",
+    "sog": "0.0"
+   },
+   "fx": 0.29701,
+   "fy": 0.87038
+  },
+  {
+   "lat": 57.6088,
+   "lon": 10.88219,
+   "status": "dark",
+   "peak_db": -9.5,
+   "rcs_db": 18.9,
+   "length_m": 47,
+   "size": "small",
+   "ais": null,
+   "fx": 0.83159,
+   "fy": 0.87793
+  },
+  {
+   "lat": 57.59696,
+   "lon": 10.96893,
+   "status": "dark",
+   "peak_db": -9.2,
+   "rcs_db": 16.0,
+   "length_m": 28,
+   "size": "small",
+   "ais": null,
+   "fx": 0.97934,
+   "fy": 0.91446
+  },
+  {
+   "lat": 57.59464,
+   "lon": 10.9359,
+   "status": "dark",
+   "peak_db": -6.0,
+   "rcs_db": 25.3,
+   "length_m": 85,
+   "size": "small",
+   "ais": null,
+   "fx": 0.92368,
+   "fy": 0.92431
+  }
+ ],
+ "pass_time": "2026-11-06T16:53:13.389865Z",
+ "scene": "S1C_IW_GRDH_1SDV_20261106T165300_20261106T165325_010219_014681_rtc",
+ "map_overlay": {
+  "url": "/media/skagen-dark-vessels_map.png",
+  "bounds": [
+   [
+    57.58,
+    10.4
+   ],
+   [
+    57.86,
+    10.98
+   ]
+  ]
+ },
+ "question": "Are there dark vessels off Skagen on 6 Nov 2026? Which ships are not sending AIS?",
+ "task": "vessels",
+ "place": "Skagen, Denmark",
+ "lat": 57.7209,
+ "lon": 10.5839,
+ "bbox": [
+  10.4,
+  57.58,
+  10.98,
+  57.86
+ ],
+ "before": null,
+ "after": [
+  "2026-11-06",
+  "2026-11-06"
+ ],
+ "quote": {
+  "area_km2": 1074.8,
+  "recommended": "sar",
+  "options": [
+   {
+    "kind": "sar",
+    "label": "SAR archive, 1 m spotlight",
+    "unit": "$450 per 25 km² scene × 43",
+    "price": 19350.0,
+    "why": "Sees through cloud and at night. Use when an archive pass already exists."
+   },
+   {
+    "kind": "sar",
+    "label": "SAR new tasking, 1 m spotlight",
+    "unit": "$675 per 25 km² scene × 43",
+    "price": 29025.0,
+    "why": "A new radar pass on the date you pick, through cloud."
+   },
+   {
+    "kind": "optical",
+    "label": "Optical archive, 50 cm",
+    "unit": "$8 per km² × 1074.8 km²",
+    "price": 8598.04,
+    "why": "Colour image that shows single buildings and cars, if the sky was clear."
+   },
+   {
+    "kind": "optical",
+    "label": "Optical archive, 30 cm",
+    "unit": "$22.50 per km² × 1074.8 km²",
+    "price": 24181.99,
+    "why": "The sharpest colour image. Small boats, vehicles and roof detail."
+   }
+  ],
+  "source": "SkyFi list prices (skyfi.com/pricing and FAQ). Optical minimum order 5 km².",
+  "note": "This is a quote only. No order is placed."
+ },
+ "seconds": 28.0,
+ "id": "skagen-dark-vessels",
+ "steps": [
+  {
+   "t": 0.0,
+   "kind": "step",
+   "text": "Read the question as a demo question: Skagen, Denmark."
+  },
+  {
+   "t": 0.0,
+   "kind": "decision",
+   "text": "Chose **radar (Sentinel-1)**. Steel ships are bright points on dark radar sea, day or night, through cloud."
+  },
+  {
+   "t": 0.3,
+   "kind": "step",
+   "text": "Found 2 radar passes. Used 2026-11-06 16:53 UTC (ascending)."
+  },
+  {
+   "t": 0.3,
+   "kind": "step",
+   "text": "Read the VV band on a 10 m grid."
+  },
+  {
+   "t": 20.0,
+   "kind": "step",
+   "text": "Masked land and a 250 m coastal strip with ESA WorldCover. Open sea left: 1036 km²."
+  },
+  {
+   "t": 21.0,
+   "kind": "step",
+   "text": "Found **55 bright ship-like targets** (more than 8 dB above the sea around them)."
+  },
+  {
+   "t": 22.2,
+   "kind": "step",
+   "text": "Loaded Danish Maritime Authority AIS: 100 ships reported within 25 minutes of the pass."
+  },
+  {
+   "t": 22.2,
+   "kind": "step",
+   "text": "Joined 6 extra blobs (sidelobes and wakes) to the matched ship next to them."
+  },
+  {
+   "t": 22.2,
+   "kind": "step",
+   "text": "Removed 7 faint ghosts: copies of a bright ship 1–8 km along the satellite track."
+  },
+  {
+   "t": 22.2,
+   "kind": "step",
+   "text": "Ships left: 42."
+  },
+  {
+   "t": 22.2,
+   "kind": "step",
+   "text": "Matched 30 radar targets to AIS positions (within 500 m plus 80 m per knot, after moving each ship along its course to the pass time)."
+  },
+  {
+   "t": 28.0,
+   "kind": "step",
+   "text": "Circled every target: green has AIS, red has no AIS."
+  },
+  {
+   "t": 28.0,
+   "kind": "done",
+   "text": "Done in 28 s."
+  }
+ ],
+ "cached": true
+}

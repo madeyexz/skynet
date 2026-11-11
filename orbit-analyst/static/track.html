@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orbit Analyst · Ship tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="tk">
+  <header class="tk-top">
+    <a class="brand" href="/"><span class="dot"></span>Orbit Analyst</a>
+    <div class="tk-src" id="src">
+      <button data-src="skagen" class="on">Replay · Skagen 6 Nov</button>
+      <button data-src="live">Live · Gulf of Finland</button>
+      <button data-src="sim">Simulated live</button>
+    </div>
+    <nav><a href="/">Ask a question</a></nav>
+  </header>
+
+  <div class="tk-body">
+    <div class="tk-mapcol">
+      <div id="map"></div>
+      <div class="tk-banner hidden" id="banner"></div>
+      <div class="tk-bar">
+        <button class="tk-play" id="play" title="Play or pause (space)">▶</button>
+        <div class="tk-clock"><b id="clock">--:--</b><span id="day"></span></div>
+        <div class="tk-tl">
+          <div class="tk-ticks" id="ticks"></div>
+          <input type="range" id="scrub" min="0" max="86400" step="1" value="0">
+          <div class="tk-hours" id="hours"></div>
+        </div>
+        <label class="tk-sel">Speed
+          <select id="speed"><option value="60">1 min/s</option><option value="300" selected>5 min/s</option><option value="1200">20 min/s</option></select>
+        </label>
+        <label class="tk-sel">Trail
+          <select id="trail"><option value="1800">30 min</option><option value="3600" selected>1 h</option><option value="10800">3 h</option><option value="0">Off</option></select>
+        </label>
+      </div>
+    </div>
+
+    <aside class="tk-side">
+      <section class="tk-card">
+        <div class="tk-stats" id="stats"></div>
+        <p class="tk-srcline" id="srcline"></p>
+        <div class="tk-legend" id="legend"></div>
+      </section>
+
+      <section class="tk-card">
+        <div class="tk-h"><h4>Zone</h4><span class="muted" id="zarea">none</span></div>
+        <div class="tk-btns">
+          <button id="drawRect">▭ Rectangle</button>
+          <button id="drawPoly">⬠ Polygon</button>
+          <button id="editZone">Edit</button>
+          <button id="clearZone">Clear</button>
+        </div>
+        <p class="tk-hint" id="zhint">Draw a zone on the map. The tracker lists what happens inside it, and radar can scan it.</p>
+        <button class="btn-dark tk-scan" id="scan" disabled>Scan the zone with radar</button>
+        <div id="scanout"></div>
+        <div class="tk-chips" id="chips"></div>
+        <ol class="tk-alerts" id="alerts"></ol>
+      </section>
+
+      <section class="tk-card hidden" id="shipcard"></section>
+
+      <section class="tk-card">
+        <div class="tk-h"><h4>Notes</h4><button class="tk-link" id="noteBtn">+ Add note on the map</button></div>
+        <form class="tk-noteform hidden" id="noteform">
+          <div class="tk-notewhere" id="notewhere"></div>
+          <textarea id="notetext" rows="2" placeholder="What did you see?"></textarea>
+          <div class="tk-btns">
+            <select id="notetag"><option value="note">Note</option><option value="suspicious">Suspicious</option><option value="watch">Watch</option><option value="cleared">Cleared</option></select>
+            <button type="submit" class="btn-dark">Save</button>
+            <button type="button" id="notecancel">Cancel</button>
+          </div>
+        </form>
+        <ol class="tk-notes" id="notes"></ol>
+      </section>
+    </aside>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.js"></script>
+  <script src="/static/track.js"></script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skynet Data API · Docs</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23292929'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='white' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='white' stroke-opacity='.45' stroke-width='1.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/docs.css">
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+</head>
+<body class="dc-body">
+  <header class="dc-top">
+    <a class="dc-brand" href="/" aria-label="Back to the Skynet app">
+      <span class="dc-logo" aria-hidden="true"></span>
+      <span class="dc-brand-name">Skynet</span>
+      <span class="dc-brand-sep" aria-hidden="true">/</span>
+      <span class="dc-brand-sub">Data API</span>
+    </a>
+    <div class="dc-top-links">
+      <a class="dc-top-link" href="#try"><i data-lucide="play"></i><span>Try it</span></a>
+      <a class="btn primary dc-back" href="/"><i data-lucide="arrow-left"></i>Back to the app</a>
+    </div>
+  </header>
+
+  <div class="dc-layout">
+    <nav class="dc-nav" aria-label="Docs">
+      <div class="dc-nav-group">
+        <div class="dc-nav-title">Getting started</div>
+        <a href="#intro" class="dc-nav-link">Introduction</a>
+        <a href="#auth" class="dc-nav-link">Authentication</a>
+        <a href="#try" class="dc-nav-link">Try it</a>
+      </div>
+      <div class="dc-nav-group">
+        <div class="dc-nav-title">Endpoints</div>
+        <a href="#record" class="dc-nav-link"><span class="dc-verb get">GET</span>Vessel record</a>
+        <a href="#risk" class="dc-nav-link"><span class="dc-verb get">GET</span>Vessel risk</a>
+        <a href="#zone-events" class="dc-nav-link"><span class="dc-verb get">GET</span>Zone events</a>
+        <a href="#create-zone" class="dc-nav-link"><span class="dc-verb post">POST</span>Create zone</a>
+        <a href="#webhooks" class="dc-nav-link"><span class="dc-verb post">POST</span>Webhooks</a>
+        <a href="#alert-created" class="dc-nav-link">alert.created payload</a>
+      </div>
+      <div class="dc-nav-group">
+        <div class="dc-nav-title">Use cases</div>
+        <a href="#uc-underwriting" class="dc-nav-link">Underwriting</a>
+        <a href="#uc-sanctions" class="dc-nav-link">Sanctions screening</a>
+        <a href="#uc-claims" class="dc-nav-link">Claims</a>
+      </div>
+    </nav>
+
+    <main class="dc-main">
+      <section id="intro" class="dc-section">
+        <p class="dc-eyebrow">Skynet Data API · v1</p>
+        <h1>One vessel record, over HTTP</h1>
+        <p>Skynet compares what a ship <em>claims</em> (AIS) with what space <em>observes</em> (satellite radar, RF emissions).
+          Every alert and every report in the app comes from one vessel record. The Data API returns that same record, the
+          same risk score and the same zone events, so you can put Skynet's evidence inside your own underwriting,
+          compliance or claims systems.</p>
+        <p>Base URL: <code class="dc-inline" data-base>https://skynet.example</code>. All times are integer epoch seconds (UTC).
+          Responses are JSON. The demo world is illustrative.</p>
+      </section>
+
+      <section id="auth" class="dc-section">
+        <h2>Authentication</h2>
+        <p>Send your API key as a bearer token on every request. The <code class="dc-inline">x-api-key</code> header also works.
+          Requests without a valid key get <code class="dc-inline">401</code>.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>Header</span><button type="button" class="dc-copy" aria-label="Copy header"><i data-lucide="copy"></i></button></div>
+<pre><code>Authorization: Bearer sk_live_skynet_demo</code></pre></div>
+        <p class="dc-note">The demo key <code class="dc-inline">sk_live_skynet_demo</code> is public and read/write against the demo world only.</p>
+      </section>
+
+      <section id="try" class="dc-section">
+        <h2>Try it</h2>
+        <p>Calls the live endpoint on this server with the demo key.</p>
+        <form class="dc-try card" id="dc-try" autocomplete="off">
+          <div class="dc-try-row">
+            <label class="dc-field dc-field-ep">
+              <span>Endpoint</span>
+              <select id="dc-try-ep">
+                <option value="record">GET /v1/vessels/{id}/record</option>
+                <option value="risk">GET /v1/vessels/{id}/risk</option>
+                <option value="zone">GET /v1/zones/{id}/events</option>
+              </select>
+            </label>
+            <label class="dc-field dc-field-id">
+              <span id="dc-try-id-label">Vessel id</span>
+              <input id="dc-try-id" value="D-04" spellcheck="false">
+            </label>
+            <button class="btn primary dc-send" type="submit"><i data-lucide="send"></i>Send request</button>
+          </div>
+          <div class="dc-code dc-try-req"><div class="dc-code-head"><span>Request</span><button type="button" class="dc-copy" aria-label="Copy request"><i data-lucide="copy"></i></button></div>
+<pre><code id="dc-try-curl"></code></pre></div>
+          <div class="dc-code dc-try-res"><div class="dc-code-head"><span id="dc-try-status">Response</span><button type="button" class="dc-copy" aria-label="Copy response"><i data-lucide="copy"></i></button></div>
+<pre class="dc-res-pre"><code id="dc-try-out">Press “Send request”.</code></pre></div>
+        </form>
+      </section>
+
+      <section id="record" class="dc-section">
+        <h2><span class="dc-verb get">GET</span><code>/v1/vessels/{id}/record</code></h2>
+        <p>The full evidence record for one vessel: verified (fused) track, what AIS claimed, dark periods, every event including
+          operator actions, the risk score and a fingerprint. Optional <code class="dc-inline">from</code> and
+          <code class="dc-inline">to</code> (epoch seconds) cut the window.</p>
+        <dl class="dc-params">
+          <dt><code>id</code></dt><dd>Vessel code (<code class="dc-inline">D-04</code>), MMSI or IMO.</dd>
+          <dt><code>from</code>, <code>to</code></dt><dd>Optional window, epoch seconds. Defaults to the whole record.</dd>
+        </dl>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code><span data-curl>curl</span> -H 'Authorization: Bearer sk_live_skynet_demo' \
+  '<span data-base>https://skynet.example</span>/v1/vessels/D-04/record?from=1794355200&amp;to=1794384000'</code></pre></div>
+        <div class="dc-code"><div class="dc-code-head"><span>Response · 200</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code id="dc-ex-record">{
+  "vessel": {"id": "D-04", "mmsi": 538009876, "imo": "9329760", "name": "KAIROS STAR",
+             "flag": "Cook Islands", "type": "tanker", "length_m": 228},
+  "from": 1794355200, "to": 1794384000,
+  "verified_track": [[1794355200, 24.912, 59.871], "…"],
+  "claimed_track":  [[1794355200, 24.912, 59.871], "…"],
+  "dark_periods": [{"start": 1794371400, "end": 1794377040, "minutes": 94}],
+  "events": [{"id": "E-0012", "type": "dark_period", "t": 1794371400, "severity": "high",
+              "summary": "AIS switched off over Cable A while radar still saw the hull.", "source": "fusion"}, "…"],
+  "risk": {"score": 87, "level": "high", "reasons": [{"text": "AIS off 94 min while radar still saw the hull over Cable A", "points": 35, "source": "sar"}]},
+  "evidence_url": "https://skynet.example/report.html?vessel=D-04",
+  "fingerprint": "sha256:…"
+}</code></pre></div>
+        <p class="dc-note">The fingerprint is the sha256 of the canonical JSON (sorted keys, no spaces) of <code class="dc-inline">events</code>.
+          Recompute it to prove a record has not changed since it was exported.</p>
+      </section>
+
+      <section id="risk" class="dc-section">
+        <h2><span class="dc-verb get">GET</span><code>/v1/vessels/{id}/risk</code></h2>
+        <p>The current Skynet risk score (0–100) with the reasons behind it. Each reason names the layer it came from:
+          <code class="dc-inline">ais</code>, <code class="dc-inline">sar</code>, <code class="dc-inline">rf</code>,
+          <code class="dc-inline">registry</code>, <code class="dc-inline">sanctions</code> or <code class="dc-inline">fusion</code>.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>curl -H 'Authorization: Bearer sk_live_skynet_demo' \
+  '<span data-base>https://skynet.example</span>/v1/vessels/D-04/risk'</code></pre></div>
+        <div class="dc-code"><div class="dc-code-head"><span>Response · 200</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code id="dc-ex-risk">{
+  "vessel_id": "D-04", "score": 87, "level": "high",
+  "reasons": [{"text": "AIS off 94 min while radar still saw the hull over Cable A", "points": 35, "source": "sar"}, "…"],
+  "as_of": 1794382200
+}</code></pre></div>
+      </section>
+
+      <section id="zone-events" class="dc-section">
+        <h2><span class="dc-verb get">GET</span><code>/v1/zones/{id}/events</code></h2>
+        <p>Events inside a watch zone, oldest first. Pass <code class="dc-inline">since</code> (epoch seconds) to poll for
+          new ones; use webhooks if you would rather be told.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>curl -H 'Authorization: Bearer sk_live_skynet_demo' \
+  '<span data-base>https://skynet.example</span>/v1/zones/Z-1/events?since=1794375000'</code></pre></div>
+      </section>
+
+      <section id="create-zone" class="dc-section">
+        <h2><span class="dc-verb post">POST</span><code>/v1/zones</code></h2>
+        <p>Create a watch zone. A zone is a geometry (corridor around a line, polygon, or a watchlist of vessels), a purpose
+          preset (<code class="dc-inline">cable</code>, <code class="dc-inline">sanctions</code>,
+          <code class="dc-inline">insurance</code>, <code class="dc-inline">custom</code>), rules, metrics and recipients.
+          Skynet evaluates it against the record straight away and returns the events, alerts and metrics it found.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'Content-Type: application/json' \
+  '<span data-base>https://skynet.example</span>/v1/zones' -d '{
+  "name": "Tanker watchlist", "purpose": "sanctions",
+  "geometry": {"type": "watchlist", "vessel_ids": ["T-11", "D-04"]},
+  "rules": [{"id": "dark_period", "label": "AIS off longer than", "enabled": true, "severity": "high",
+             "params": [{"key": "hours", "label": "Longer than", "value": 1, "unit": "h"}]}],
+  "recipients": [{"name": "Compliance desk", "channel": "webhook", "min_severity": "medium"}]
+}'</code></pre></div>
+        <div class="dc-code"><div class="dc-code-head"><span>Response · 200</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>{"zone": {"id": "Z-2", "name": "Tanker watchlist", "…": "…"}, "events": ["…"], "alerts": ["…"], "metrics": ["…"]}</code></pre></div>
+      </section>
+
+      <section id="webhooks" class="dc-section">
+        <h2><span class="dc-verb post">POST</span><code>/v1/webhooks</code></h2>
+        <p>Register a URL. Every new alert is POSTed to each registered URL (best effort, logged).
+          <code class="dc-inline">GET /v1/webhooks/deliveries</code> lists the delivery log.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'Content-Type: application/json' \
+  '<span data-base>https://skynet.example</span>/v1/webhooks' -d '{"url": "https://example.com/skynet-hook"}'</code></pre></div>
+      </section>
+
+      <section id="alert-created" class="dc-section">
+        <h3>Webhook payload: <code>alert.created</code></h3>
+        <p>Sent once per alert. <code class="dc-inline">data</code> is the same Alert object the app shows.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>POST to your URL</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>{
+  "type": "alert.created",
+  "data": {
+    "id": "A-0003", "vessel_id": "D-04", "event_ids": ["E-0012", "E-0013"], "zone_id": "Z-1",
+    "t": 1794377040, "severity": "high",
+    "headline": "Dark tanker dragging a likely anchor over Cable A",
+    "facts": ["AIS silent 94 min", "Radar: 230 m hull 0.4 km from the cable",
+              "Nav radar still emitting", "Speed 1.8 kn, heading swings 70°"],
+    "actions": [{"id": "dispatch_patrol", "label": "Dispatch nearest patrol"},
+                {"id": "forward_owner", "label": "Forward to cable owner"},
+                {"id": "dismiss", "label": "Not suspicious"}],
+    "recipients": [{"name": "Coast guard duty officer", "channel": "push"}],
+    "status": "open"
+  }
+}</code></pre></div>
+      </section>
+
+      <section id="use-cases" class="dc-section">
+        <h2>Use cases</h2>
+
+        <h3 id="uc-underwriting">Underwriting</h3>
+        <p>Before you quote a hull or war-risk policy, pull the vessel's risk and its recent record: how often it went dark,
+          whether its AIS position disagreed with radar, and whether it met other ships at sea. Price the behaviour, not just
+          the flag.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>curl -H 'Authorization: Bearer sk_live_skynet_demo' '<span data-base>https://skynet.example</span>/v1/vessels/T-11/risk'</code></pre></div>
+
+        <h3 id="uc-sanctions">Sanctions screening</h3>
+        <p>A registry check tells you who a ship says it is. Skynet tells you what it did: dark periods, ship-to-ship meetings,
+          identity changes and spoofed positions. Put your counterparties' vessels in a watchlist zone and get a webhook the
+          moment one goes dark.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'Content-Type: application/json' \
+  '<span data-base>https://skynet.example</span>/v1/zones' \
+  -d '{"name": "Counterparty fleet", "purpose": "sanctions", "geometry": {"type": "watchlist", "vessel_ids": ["S-17", "D-04"]}}'</code></pre></div>
+
+        <h3 id="uc-claims">Claims</h3>
+        <p>When a cable is cut or a cargo goes missing, reconstruct the voyage from independent sources. The record pairs the
+          claimed AIS track with radar-verified positions for the window you ask for, and the fingerprint lets you show it was
+          not edited after the fact.</p>
+        <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
+<pre><code>curl -H 'Authorization: Bearer sk_live_skynet_demo' \
+  '<span data-base>https://skynet.example</span>/v1/vessels/D-04/record?from=1794369600&amp;to=1794380400'</code></pre></div>
+      </section>
+
+      <footer class="dc-foot">
+        <a href="/" class="dc-foot-link"><i data-lucide="arrow-left"></i>Back to Skynet</a>
+        <span>Skynet · Air traffic control and a black box, for the sea.</span>
+      </footer>
+    </main>
+  </div>
+
+  <script type="module">
+    const KEY = 'sk_live_skynet_demo';
+    const base = location.origin;
+    document.querySelectorAll('[data-base]').forEach((el) => { el.textContent = base; });
+
+    // Copy buttons: copy the <code> of the block they head.
+    document.addEventListener('click', async (e) => {
+      const b = e.target.closest('.dc-copy'); if (!b) return;
+      const code = b.closest('.dc-code').querySelector('pre code');
+      try { await navigator.clipboard.writeText(code.innerText); } catch { /* clipboard blocked */ }
+      b.classList.add('done'); b.setAttribute('aria-label', 'Copied');
+      b.innerHTML = '<i data-lucide="check"></i>'; window.lucide?.createIcons();
+      setTimeout(() => { b.classList.remove('done'); b.setAttribute('aria-label', 'Copy'); b.innerHTML = '<i data-lucide="copy"></i>'; window.lucide?.createIcons(); }, 1400);
+    });
+
+    // Try it
+    const ep = document.getElementById('dc-try-ep');
+    const idIn = document.getElementById('dc-try-id');
+    const idLabel = document.getElementById('dc-try-id-label');
+    const curlOut = document.getElementById('dc-try-curl');
+    const out = document.getElementById('dc-try-out');
+    const status = document.getElementById('dc-try-status');
+    const path = () => {
+      const id = encodeURIComponent(idIn.value.trim() || (ep.value === 'zone' ? 'Z-1' : 'D-04'));
+      return ep.value === 'record' ? `/v1/vessels/${id}/record` : ep.value === 'risk' ? `/v1/vessels/${id}/risk` : `/v1/zones/${id}/events`;
+    };
+    const renderCurl = () => { curlOut.textContent = `curl -H 'Authorization: Bearer ${KEY}' '${base}${path()}'`; };
+    ep.addEventListener('change', () => {
+      const zone = ep.value === 'zone';
+      idLabel.textContent = zone ? 'Zone id' : 'Vessel id';
+      if (zone && /^[A-Z]-\d+$/.test(idIn.value) && !idIn.value.startsWith('Z')) idIn.value = 'Z-1';
+      if (!zone && idIn.value.startsWith('Z')) idIn.value = 'D-04';
+      renderCurl();
+    });
+    idIn.addEventListener('input', renderCurl);
+    renderCurl();
+
+    // Long tracks make a wall of numbers: keep the first few points and say how many were trimmed.
+    function trimmed(data) {
+      if (!data || typeof data !== 'object') return data;
+      const d = Array.isArray(data) ? [...data] : { ...data };
+      for (const k of ['verified_track', 'claimed_track']) {
+        if (Array.isArray(d[k]) && d[k].length > 4) d[k] = [...d[k].slice(0, 3), `… ${d[k].length - 3} more points`];
+      }
+      if (Array.isArray(d.events) && d.events.length > 6) d.events = [...d.events.slice(0, 6), `… ${d.events.length - 6} more events`];
+      return d;
+    }
+
+    document.getElementById('dc-try').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.textContent = 'Response · loading…';
+      out.textContent = '';
+      const t0 = performance.now();
+      try {
+        const r = await fetch(path(), { headers: { Authorization: `Bearer ${KEY}` } });
+        const text = await r.text();
+        let body; try { body = JSON.parse(text); } catch { body = text; }
+        status.textContent = `Response · ${r.status} · ${Math.round(performance.now() - t0)} ms`;
+        out.textContent = typeof body === 'string' ? body : JSON.stringify(trimmed(body), null, 2);
+      } catch (err) {
+        status.textContent = 'Response · network error';
+        out.textContent = String(err.message || err);
+      }
+    });
+
+    // Replace the static examples with real responses from this server, when it answers.
+    async function realExample(id, url) {
+      try {
+        const r = await fetch(url, { headers: { Authorization: `Bearer ${KEY}` } });
+        if (!r.ok) return;
+        const body = await r.json();
+        document.getElementById(id).textContent = JSON.stringify(trimmed(body), null, 2);
+      } catch { /* keep the static example */ }
+    }
+    realExample('dc-ex-record', '/v1/vessels/D-04/record');
+    realExample('dc-ex-risk', '/v1/vessels/D-04/risk');
+
+    // Highlight the section in view in the left nav.
+    const links = [...document.querySelectorAll('.dc-nav-link')];
+    const io = new IntersectionObserver((entries) => {
+      for (const en of entries) if (en.isIntersecting) {
+        links.forEach((l) => l.classList.toggle('active', l.getAttribute('href') === `#${en.target.id}`));
+      }
+    }, { rootMargin: '-80px 0px -70% 0px' });
+    document.querySelectorAll('.dc-section[id], h3[id]').forEach((s) => io.observe(s));
+
+    window.lucide?.createIcons();
+  </script>
+</body>
+</html>
