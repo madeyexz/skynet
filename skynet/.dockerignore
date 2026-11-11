@@ -1,0 +1,12 @@
+.venv
+**/__pycache__
+node_modules
+worker
+wrangler.jsonc
+package.json
+package-lock.json
+.wrangler
+data/state.json
+data/cache
+data/reports
+data/source

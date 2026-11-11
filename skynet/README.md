@@ -22,6 +22,21 @@ The earlier hackathon demos are **use cases** that feed the same Detect → Aler
 | Dark vessels · Skagen | Real Sentinel-1 radar detections matched against DMA AIS, 6 Nov 2026 (from Orbit Analyst) |
 | War risk · Hormuz | Real JMIC incidents, the JWC listed area, gpsjam, IMF PortWatch and OFAC SDN (from the war-risk copilot), with the illustrative tanker T-11 |
 
+### Use-case data
+
+Everything the use cases need lives in `data/`; the source demos are no longer in this repo.
+
+- `data/geo/`: `cables.geojson` (TeleGeography submarine cables plus EMODnet pipelines such as Balticconnector) and `land.geojson` (Natural Earth 10 m land), both built by Cable Watch for the Baltic. The seed uses the cables; fusion uses the land mask.
+- `data/real/`: the precomputed Baltic 2024 and Skagen worlds (`baltic-2024.json`, `dark-skagen.json`), the Skagen radar images (`media/`) and the war-risk evidence (`warrisk_evidence.json`). War risk is built at runtime from the evidence file and the live PortWatch, gpsjam and OFAC SDN feeds (cached in `data/cache/`).
+
+Serving only reads these files. To rebuild the Baltic and Skagen worlds you need the original source extracts (Cable Watch's `replay-yi-peng-3.json`; Orbit Analyst's Skagen passes, AIS tracks and radar overlays) in their original layout under `SKYNET_SOURCE_DIR` (default `data/source/`, not committed). A checkout of this repo from before the source demos were removed works:
+
+```sh
+SKYNET_SOURCE_DIR=/path/to/old-checkout uv run python -m server.real.cases build   # or: build baltic-2024
+```
+
+The full list of files is in the `server/real/cases.py` docstring.
+
 ## Run
 
 ```sh
@@ -40,6 +55,18 @@ Keys: `Space` plays or pauses the clock. `1` `2` `3` switch Detect, Alert and Re
 
 Click **Reset** in the top bar, or run `curl -X POST localhost:8787/api/reset`. This reseeds the world and clears operator actions, reports and user zones; the seeded Cable A corridor stays. `rm data/state.json` does the same while the server is stopped.
 
+## Deploy (Cloudflare Workers + Containers)
+
+The hosted demo is a Worker (`worker/index.js`) in front of one container that runs this FastAPI app and Chromium for PDFs (`Dockerfile`). It needs Docker running locally, a Workers Paid plan, and an API token with Workers Scripts: Edit, Containers: Edit and Account Settings: Read.
+
+```sh
+npm install
+npx wrangler deploy                                       # builds the image, pushes it, deploys the Worker
+openssl rand -hex 24 | npx wrangler secret put SKYNET_ADMIN_KEY
+```
+
+When `SKYNET_ADMIN_KEY` is set, `/api/reset`, zone create/edit/delete, `POST /v1/zones` and `POST /v1/webhooks` need the header `x-admin-key`. The app asks for the key once in the browser and keeps it in localStorage. Webhook URLs must be public http(s) hosts; private, loopback and link-local addresses are refused. State lives in the one container and resets when it sleeps (after 2 h idle).
+
 ## Data API
 
 ```sh
@@ -52,9 +79,9 @@ The endpoints are `GET /v1/vessels/{id}/record?from&to`, `GET /v1/vessels/{id}/r
 
 | Layer | Now | Plug in |
 |---|---|---|
-| Claimed (AIS), live | Not wired in this build (cut for time) | AISStream.io websocket or Fintraffic Digitraffic (keyless; see `orbit-analyst/tracks.py`) into `vessel.claimed` as `[t, lon, lat, sog, cog]` |
+| Claimed (AIS), live | Not wired in this build (cut for time) | AISStream.io websocket or Fintraffic Digitraffic (keyless, `meri.digitraffic.fi`) into `vessel.claimed` as `[t, lon, lat, sog, cog]` |
 | Claimed (AIS), history | DMA AIS extracts (Baltic 2024, Skagen) | Any AIS archive into `vessel.claimed` |
-| Observed (SAR) | Seeded in the default case; real Sentinel-1 detections in the Skagen, Taiwan and Libya→Crete cases | Global Fishing Watch SAR presence API (`cable-watch/cable_watch/gfw.py`, uses `GFW_API_TOKEN`) into `vessel.observed` |
+| Observed (SAR) | Seeded in the default case; real Sentinel-1 detections in the Skagen case | Global Fishing Watch SAR presence API (needs `GFW_API_TOKEN`) into `vessel.observed` |
 | Emitted (RF) | Simulated | An RF geolocation provider's detections into `vessel.emitted` |
 | Fusion and risk | `server/fusion.py` (pure, deterministic) | Runs unchanged on real layers |
 | Delivery channels | Simulated push and email; real outbound webhooks | A push or email provider in `server/app.py` deliveries |

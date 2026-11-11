@@ -3,3 +3,6 @@ __pycache__/
 data/state.json
 data/cache/
 data/reports/
+node_modules/
+.wrangler/
+data/source/

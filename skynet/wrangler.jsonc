@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "skynet",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-10",
+  "workers_dev": true,
+  "containers": [
+    {
+      "class_name": "SkynetContainer",
+      "image": "./Dockerfile",
+      "instance_type": "standard-1",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "SKYNET", "class_name": "SkynetContainer" }]
+  },
+  "exports": {
+    "SkynetContainer": { "type": "durable-object", "storage": "sqlite" }
+  }
+}
