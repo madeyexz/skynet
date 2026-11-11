@@ -57,7 +57,7 @@ Click **Reset** in the top bar, or run `curl -X POST localhost:8787/api/reset`. 
 
 ## Deploy
 
-**Amp Box (the hosted demo).** `.amp/box.yaml` builds a self-contained release with `scripts/box-build.sh`: a relocatable Python 3.12, the pip dependencies and Chrome's headless shell for PDFs. `scripts/box-start.sh` runs it read-only and keeps state in the deployment's data directory. From `skynet/`:
+**Amp Box (the hosted demo).** `.amp/box.yaml` builds a self-contained release with `scripts/box-build.sh`: a relocatable Python 3.12, the pip dependencies and Chrome's headless shell for PDFs. `scripts/box-start.sh` runs it read-only and keeps state in the deployment's data directory. The build needs Docker running: it collects Chrome's libraries and fonts from `ubuntu:24.04` to match the Box. From `skynet/`:
 
 ```sh
 amp boxes deploy --on <namespace>/<box> --name skynet --repo https://github.com/madeyexz/skynet.git
