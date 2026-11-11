@@ -66,7 +66,10 @@
           Requests without a valid key get <code class="dc-inline">401</code>.</p>
         <div class="dc-code"><div class="dc-code-head"><span>Header</span><button type="button" class="dc-copy" aria-label="Copy header"><i data-lucide="copy"></i></button></div>
 <pre><code>Authorization: Bearer sk_live_skynet_demo</code></pre></div>
-        <p class="dc-note">The demo key <code class="dc-inline">sk_live_skynet_demo</code> is public and read/write against the demo world only.</p>
+        <p class="dc-note">The demo key <code class="dc-inline">sk_live_skynet_demo</code> is public and reads the demo world.
+          On the hosted demo, write calls (<code class="dc-inline">POST /v1/zones</code>, <code class="dc-inline">POST /v1/webhooks</code>)
+          also need the demo admin key in an <code class="dc-inline">x-admin-key</code> header; without it they get
+          <code class="dc-inline">401</code> with <code class="dc-inline">"error": "admin_key_required"</code>.</p>
       </section>
 
       <section id="try" class="dc-section">
@@ -118,7 +121,7 @@
   "events": [{"id": "E-0012", "type": "dark_period", "t": 1794371400, "severity": "high",
               "summary": "AIS switched off over Cable A while radar still saw the hull.", "source": "fusion"}, "…"],
   "risk": {"score": 87, "level": "high", "reasons": [{"text": "AIS off 94 min while radar still saw the hull over Cable A", "points": 35, "source": "sar"}]},
-  "evidence_url": "https://skynet.example/report.html?vessel=D-04",
+  "evidence_url": "<span data-base>https://skynet.example</span>/report.html?vessel=D-04",
   "fingerprint": "sha256:…"
 }</code></pre></div>
         <p class="dc-note">The fingerprint is the sha256 of the canonical JSON (sorted keys, no spaces) of <code class="dc-inline">events</code>.
@@ -156,9 +159,10 @@
           preset (<code class="dc-inline">cable</code>, <code class="dc-inline">sanctions</code>,
           <code class="dc-inline">insurance</code>, <code class="dc-inline">custom</code>), rules, metrics and recipients.
           Skynet evaluates it against the record straight away and returns the events, alerts and metrics it found.</p>
+        <p class="dc-note">On the hosted demo this call also needs <code class="dc-inline">x-admin-key: &lt;admin key&gt;</code>.</p>
         <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
-<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'Content-Type: application/json' \
-  '<span data-base>https://skynet.example</span>/v1/zones' -d '{
+<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'x-admin-key: &lt;admin key&gt;' \
+  -H 'Content-Type: application/json' '<span data-base>https://skynet.example</span>/v1/zones' -d '{
   "name": "Tanker watchlist", "purpose": "sanctions",
   "geometry": {"type": "watchlist", "vessel_ids": ["T-11", "D-04"]},
   "rules": [{"id": "dark_period", "label": "AIS off longer than", "enabled": true, "severity": "high",
@@ -173,9 +177,13 @@
         <h2><span class="dc-verb post">POST</span><code>/v1/webhooks</code></h2>
         <p>Register a URL. Every new alert is POSTed to each registered URL (best effort, logged).
           <code class="dc-inline">GET /v1/webhooks/deliveries</code> lists the delivery log.</p>
+        <p class="dc-note">The URL must be a public <code class="dc-inline">http</code> or <code class="dc-inline">https</code> host.
+          Localhost, private, link-local and other reserved addresses are rejected with <code class="dc-inline">422</code>,
+          both when you register and again before each delivery; redirects are not followed. On the hosted demo this call
+          also needs <code class="dc-inline">x-admin-key: &lt;admin key&gt;</code>.</p>
         <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
-<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'Content-Type: application/json' \
-  '<span data-base>https://skynet.example</span>/v1/webhooks' -d '{"url": "https://example.com/skynet-hook"}'</code></pre></div>
+<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'x-admin-key: &lt;admin key&gt;' \
+  -H 'Content-Type: application/json' '<span data-base>https://skynet.example</span>/v1/webhooks' -d '{"url": "https://example.com/skynet-hook"}'</code></pre></div>
       </section>
 
       <section id="alert-created" class="dc-section">
@@ -214,8 +222,8 @@
           identity changes and spoofed positions. Put your counterparties' vessels in a watchlist zone and get a webhook the
           moment one goes dark.</p>
         <div class="dc-code"><div class="dc-code-head"><span>curl</span><button type="button" class="dc-copy" aria-label="Copy"><i data-lucide="copy"></i></button></div>
-<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'Content-Type: application/json' \
-  '<span data-base>https://skynet.example</span>/v1/zones' \
+<pre><code>curl -X POST -H 'Authorization: Bearer sk_live_skynet_demo' -H 'x-admin-key: &lt;admin key&gt;' \
+  -H 'Content-Type: application/json' '<span data-base>https://skynet.example</span>/v1/zones' \
   -d '{"name": "Counterparty fleet", "purpose": "sanctions", "geometry": {"type": "watchlist", "vessel_ids": ["S-17", "D-04"]}}'</code></pre></div>
 
         <h3 id="uc-claims">Claims</h3>

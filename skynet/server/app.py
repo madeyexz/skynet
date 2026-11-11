@@ -6,11 +6,16 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import hmac
+import ipaddress
 import os
 import shutil
+import socket
 import tempfile
 import time
+import uuid
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
 from fastapi import BackgroundTasks, Body, FastAPI, Header, HTTPException, Query, Request
@@ -23,8 +28,22 @@ from server import store
 
 ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "web"
-API_KEY = os.environ.get("SKYNET_API_KEY", "sk_live_skynet_demo")
-CHROME = os.environ.get("SKYNET_CHROME", "/home/user/.agent-browser/browsers/chrome-157.0.8103.38/chrome")
+API_KEY = os.environ.get("SKYNET_API_KEY", "sk_live_skynet_demo")  # public /v1 read key (printed in the docs)
+ADMIN_KEY = os.environ.get("SKYNET_ADMIN_KEY")  # when set, write routes need `x-admin-key`; unset = open (local dev)
+ALLOW_PRIVATE_WEBHOOKS = os.environ.get("SKYNET_ALLOW_PRIVATE_WEBHOOKS") == "1"  # local testing only
+
+
+def _find_chrome() -> str:
+    if os.environ.get("SKYNET_CHROME"):
+        return os.environ["SKYNET_CHROME"]
+    fallback = "/home/user/.agent-browser/browsers/chrome-157.0.8103.38/chrome"
+    for c in (shutil.which("chromium"), shutil.which("chromium-browser"), shutil.which("google-chrome"), fallback):
+        if c and Path(c).exists():
+            return c
+    return fallback
+
+
+CHROME = _find_chrome()
 DEFAULT_CREATOR = "Ian (demo)"
 SEV_RANK = {"low": 1, "medium": 2, "high": 3}
 ACTION_LABELS = {"dispatch_patrol": "Dispatch nearest patrol", "forward_owner": "Forward to cable owner",
@@ -38,6 +57,23 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"],
 @app.exception_handler(store.CaseUnavailable)
 async def _case_unavailable(_req: Request, exc: store.CaseUnavailable):
     return JSONResponse({"detail": str(exc), "error": "case_unavailable"}, status_code=404)
+
+
+class AdminKeyRequired(Exception):
+    pass
+
+
+@app.exception_handler(AdminKeyRequired)
+async def _admin_key_required(_req: Request, _exc: AdminKeyRequired):
+    return JSONResponse({"error": "admin_key_required",
+                         "detail": "This action needs the Skynet admin key. Send it as the 'x-admin-key' header."},
+                        status_code=401)
+
+
+def _admin(x_admin_key: str | None) -> None:
+    """Write routes: require `x-admin-key` when SKYNET_ADMIN_KEY is set; open when it is unset (local dev)."""
+    if ADMIN_KEY and not hmac.compare_digest((x_admin_key or "").encode(), ADMIN_KEY.encode()):
+        raise AdminKeyRequired()
 
 
 # ---------------------------------------------------------------- helpers
@@ -146,17 +182,75 @@ def _create_zone(case: str, body: dict, background: BackgroundTasks) -> dict:
     return _save_zone(case, zone, background)
 
 
+def _blocked_ip(addr: str) -> bool:
+    """True for any address that is not a public unicast host (private, loopback, link-local, multicast, ...)."""
+    try:
+        ip = ipaddress.ip_address(addr.split("%", 1)[0])
+    except ValueError:
+        return True
+    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
+        ip = ip.ipv4_mapped
+    return (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved
+            or ip.is_unspecified or getattr(ip, "is_site_local", False) or not ip.is_global)
+
+
+async def _webhook_url_error(url: str) -> str | None:
+    """Why `url` may not be used as a webhook target (SSRF guard), or None if it is fine.
+    Checked at registration and again right before every send, since DNS can change."""
+    try:
+        parts = urlsplit(url)
+        port = parts.port
+    except ValueError:
+        return "Webhook URL is not a valid URL."
+    if parts.scheme not in ("http", "https"):
+        return "Webhook URL must use http or https."
+    host = (parts.hostname or "").rstrip(".").lower()
+    if not host:
+        return "Webhook URL needs a hostname."
+    if ALLOW_PRIVATE_WEBHOOKS:
+        return None
+    if host == "localhost" or host.endswith(".localhost"):
+        return "Webhook URL must be a public host, not localhost."
+    try:
+        ipaddress.ip_address(host)
+        literal = True
+    except ValueError:
+        literal = False
+    if literal and _blocked_ip(host):
+        return f"Webhook URL must be a public host; {host} is a private or reserved address."
+    try:
+        infos = await asyncio.wait_for(asyncio.get_running_loop().getaddrinfo(
+            host, port or (443 if parts.scheme == "https" else 80), type=socket.SOCK_STREAM), timeout=5)
+    except asyncio.TimeoutError:
+        return f"Webhook host '{host}' could not be resolved (DNS timeout)."
+    except (OSError, UnicodeError) as exc:
+        return f"Webhook host '{host}' could not be resolved: {exc}"
+    addrs = {i[4][0] for i in infos}
+    if not addrs:
+        return f"Webhook host '{host}' could not be resolved."
+    bad = sorted(a for a in addrs if _blocked_ip(a))
+    if bad:
+        return f"Webhook URL must be a public host; '{host}' resolves to a private or reserved address ({bad[0]})."
+    return None
+
+
 async def fire_webhooks(case: str, alert: dict) -> None:
     """alert.created: POST to every registered URL, best effort (2 s timeout), and log each attempt."""
     hooks = store.webhooks()
     if not hooks:
         return
     payload = {"type": "alert.created", "case": case, "data": alert}
-    async with httpx.AsyncClient(timeout=2.0) as client:
+    async with httpx.AsyncClient(timeout=2.0, follow_redirects=False) as client:
         for h in hooks:
             t0 = time.time()
             entry = {"id": store.next_id("webhook_delivery", "WHD-"), "webhook_id": h["id"], "url": h["url"],
                      "type": "alert.created", "case": case, "alert_id": alert.get("id"), "t": int(t0)}
+            blocked = await _webhook_url_error(h["url"])
+            if blocked:
+                entry.update(status_code=None, ok=False, error=f"Blocked: {blocked}"[:300], ms=0)
+                store.log_webhook(entry)
+                print(f"[webhook] alert.created {alert.get('id')} -> {h['url']} blocked: {blocked}")
+                continue
             try:
                 r = await client.post(h["url"], json=payload, headers={"User-Agent": "Skynet-Webhooks/1.0"})
                 entry.update(status_code=r.status_code, ok=r.is_success, error=None)
@@ -191,12 +285,16 @@ def presets():
 
 
 @app.post("/api/zones")
-def create_zone(background: BackgroundTasks, body: dict = Body(...), case: str | None = None):
+def create_zone(background: BackgroundTasks, body: dict = Body(...), case: str | None = None,
+                x_admin_key: str | None = Header(None)):
+    _admin(x_admin_key)
     return _create_zone(_case(case), body, background)
 
 
 @app.put("/api/zones/{zone_id}")
-def update_zone(zone_id: str, background: BackgroundTasks, body: dict = Body(...), case: str | None = None):
+def update_zone(zone_id: str, background: BackgroundTasks, body: dict = Body(...), case: str | None = None,
+                x_admin_key: str | None = Header(None)):
+    _admin(x_admin_key)
     case = _case(case)
     old = store.find(store.world(case)["zones"], zone_id)
     if old is None:
@@ -206,7 +304,8 @@ def update_zone(zone_id: str, background: BackgroundTasks, body: dict = Body(...
 
 
 @app.delete("/api/zones/{zone_id}")
-def delete_zone(zone_id: str, case: str | None = None):
+def delete_zone(zone_id: str, case: str | None = None, x_admin_key: str | None = Header(None)):
+    _admin(x_admin_key)
     if not store.delete_zone(_case(case), zone_id):
         raise HTTPException(404, f"Zone '{zone_id}' not found.")
     return {"ok": True}
@@ -330,11 +429,11 @@ def list_reports(case: str | None = None):
 
 async def _print_pdf(url: str, out: Path) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
-    tmp = out.with_suffix(".tmp.pdf")
+    tmp = out.with_name(f"{out.stem}.{uuid.uuid4().hex}.tmp.pdf")  # unique per render, so concurrent requests don't clash
     profile = tempfile.mkdtemp(prefix="skynet-chrome-")
     try:
         proc = await asyncio.create_subprocess_exec(
-            CHROME, "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
+            CHROME, "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--no-pdf-header-footer",
             "--hide-scrollbars", "--virtual-time-budget=8000", f"--user-data-dir={profile}",
             f"--print-to-pdf={tmp}", url,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -342,6 +441,7 @@ async def _print_pdf(url: str, out: Path) -> None:
             _, err = await asyncio.wait_for(proc.communicate(), timeout=60)
         except asyncio.TimeoutError:
             proc.kill()
+            await proc.wait()
             raise HTTPException(504, "PDF rendering timed out.")
         if not tmp.exists() or tmp.stat().st_size == 0:
             raise HTTPException(500, f"PDF rendering failed: {err.decode(errors='replace')[-400:]}")
@@ -374,7 +474,8 @@ def get_report(report_id: str, case: str | None = None):
 
 
 @app.post("/api/reset")
-def reset():
+def reset(x_admin_key: str | None = Header(None)):
+    _admin(x_admin_key)
     store.reset()
     store.base_world(store.DEFAULT_CASE)
     return {"ok": True}
@@ -424,17 +525,24 @@ def v1_zone_events(zone_id: str, since: int | None = None, case: str | None = No
 
 @app.post("/v1/zones")
 def v1_create_zone(background: BackgroundTasks, body: dict = Body(...), case: str | None = None,
-                   authorization: str | None = Header(None), x_api_key: str | None = Header(None)):
+                   authorization: str | None = Header(None), x_api_key: str | None = Header(None),
+                   x_admin_key: str | None = Header(None)):
     _auth(authorization, x_api_key)
+    _admin(x_admin_key)
     return _create_zone(_case(case), body, background)
 
 
 @app.post("/v1/webhooks")
-def v1_add_webhook(body: dict = Body(...), authorization: str | None = Header(None), x_api_key: str | None = Header(None)):
+async def v1_add_webhook(body: dict = Body(...), authorization: str | None = Header(None),
+                         x_api_key: str | None = Header(None), x_admin_key: str | None = Header(None)):
     _auth(authorization, x_api_key)
+    _admin(x_admin_key)
     url = str((body or {}).get("url") or "").strip()
     if not url.startswith(("http://", "https://")):
         raise HTTPException(422, "Body needs an http(s) 'url'.")
+    problem = await _webhook_url_error(url)
+    if problem:
+        raise HTTPException(422, problem)
     return store.add_webhook(url)
 
 
