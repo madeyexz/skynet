@@ -23,7 +23,7 @@ from pyproj import Transformer
 from shapely.geometry import Polygon, shape
 
 ROOT = Path(__file__).resolve().parent.parent
-LAND_FILE = ROOT.parent / "cable-watch" / "data" / "land.geojson"
+LAND_FILE = ROOT / "data" / "geo" / "land.geojson"
 
 DAY = 86400
 KN = 1852 / 3600

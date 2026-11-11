@@ -1,18 +1,25 @@
 """Real-data use cases for Skynet. Each one is a full World in the CONTRACT schema.
 
-- baltic-2024  cable-watch replay: Danish Maritime Authority AIS 17–19 Nov 2024, BCS East-West and C-Lion1 cuts
-- dark-skagen  orbit-analyst: two real Sentinel-1 passes off Skagen on 6 Nov 2026, matched to DMA AIS
-- war-risk     war-risk-copilot: JMIC incidents, JWC listed area, live PortWatch / gpsjam / OFAC SDN (built at runtime)
-- taiwan       cable-watch: Global Fishing Watch loitering events and Sentinel-1 detections with no AIS
-- migration    orbit-abundance: Sentinel-1 strip detections in the Libya → Crete corridor, revisit and latency
+- baltic-2024  Danish Maritime Authority AIS 17–19 Nov 2024 around the BCS East-West and C-Lion1 cuts,
+               scored with cable-watch's rules
+- dark-skagen  two real Sentinel-1 passes off Skagen on 6 Nov 2026, matched to DMA AIS (from orbit-analyst)
+- war-risk     JMIC incidents, JWC listed area, live PortWatch / gpsjam / OFAC SDN (built at runtime from
+               data/real/warrisk_evidence.json and the live feeds, see warrisk.py)
 
-Real numbers come from the source demos' data files and are labelled with their source. Events, risk and alerts
-are computed from that data with the demos' own rules. Nothing about the real ships is invented. The one made-up
-ship is T-11 in war-risk, which is marked illustrative.
+Real numbers come from the original source extracts and are labelled with their source. Events, risk and alerts
+are computed from that data with the source demos' own rules. Nothing about the real ships is invented. The one
+made-up ship is T-11 in war-risk, which is marked illustrative.
 
-Static worlds are prebuilt into data/real/<case>.json (and images into data/real/media/) with
-    uv run python -m server.real.cases build
-get_world() loads them lazily, or builds them from the demo folders if a file is missing.
+baltic-2024 and dark-skagen are precomputed into data/real/<case>.json (and images into data/real/media/).
+Serving only reads those files; it never touches the source extracts. To rebuild them:
+    SKYNET_SOURCE_DIR=/path/to/extracts uv run python -m server.real.cases build [case ...]
+SKYNET_SOURCE_DIR (default data/source/, not committed) must hold the original files from the source demos,
+in their original layout:
+    cable-watch/data/replay-yi-peng-3.json                      build_baltic (scored DMA AIS replay)
+    orbit-analyst/cache/track-skagen-passes.json                build_skagen (Sentinel-1 passes and markers)
+    orbit-analyst/data/tracks_skagen_2026-11-06.json.gz         build_skagen (DMA AIS tracks)
+    orbit-analyst/cache/media/track-skagen-<time>_map.png       build_skagen (radar overlays, one per pass)
+Cable geometry comes from data/geo/cables.geojson (TeleGeography via cable-watch).
 """
 
 from __future__ import annotations
@@ -20,12 +27,13 @@ from __future__ import annotations
 import gzip
 import json
 import math
+import os
 import re
 import subprocess
 import sys
 import threading
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -34,12 +42,10 @@ from pyproj import Transformer
 from shapely.geometry import LineString, box, shape
 
 ROOT = Path(__file__).resolve().parents[2]       # skynet/
-REPO = ROOT.parent
 REAL = ROOT / "data" / "real"
 MEDIA = REAL / "media"
-CW = REPO / "cable-watch" / "data"
-OA = REPO / "orbit-analyst"
-AB = REPO / "orbit-abundance" / "web" / "data"
+GEO = ROOT / "data" / "geo"
+SOURCE = Path(os.environ.get("SKYNET_SOURCE_DIR") or ROOT / "data" / "source")   # raw extracts, builders only
 MEDIA_URL = "/api/real/media/"
 
 CASES = [
@@ -287,6 +293,16 @@ def magick_jpg(src: Path, name: str, width: int | None = None, quality=80) -> st
     return MEDIA_URL + dst.name
 
 
+def source(*parts: str) -> Path:
+    """Path of a raw source extract under SKYNET_SOURCE_DIR. Only the builders call this, never serving."""
+    p = SOURCE.joinpath(*parts)
+    if not p.exists():
+        raise FileNotFoundError(f"{p} is missing. Rebuilding a static case needs the original source extracts: "
+                                f"set SKYNET_SOURCE_DIR to a directory with cable-watch/ and orbit-analyst/ in "
+                                f"their original layout (see the server.real.cases docstring).")
+    return p
+
+
 class Ids:
     def __init__(self):
         self.n = {}
@@ -443,8 +459,8 @@ def headline(name, s, info, sanctioned=False):
 
 
 def signal_world_parts(vs, ids, corridor_cables, cable_ids, zone_for_cable, alert_if, extra_facts, recipients,
-                       actions, path_track=None, track_fn=None):
-    """Shared by baltic-2024 and taiwan: cable-watch scored ships → vessels, events, alerts."""
+                       actions, track_fn):
+    """cable-watch scored ships → vessels, events, alerts (baltic-2024)."""
     vessels, events, alerts = [], [], []
     for rank, src in enumerate(vs, 1):
         prefix = "T" if src.get("type") == "Tanker" else "V"
@@ -495,16 +511,6 @@ def signal_world_parts(vs, ids, corridor_cables, cable_ids, zone_for_cable, aler
                          "rules": "cable-watch (cable_watch/detect.py): each kind counts once, total capped at 100"},
                    crossings=src.get("crossings"))
         vessels.append(v)
-        for p in (path_track or {}).get(src["mmsi"], []):
-            if p["type"] == "encounter":
-                eid = ids("E")
-                h = (p["end"] - p["start"]) / 3600
-                events.append({"id": eid, "vessel_id": vid, "type": "ship_to_ship_meeting", "t": p["start"],
-                               "end": p["end"], "lon": p["lon"], "lat": p["lat"], "severity": "medium",
-                               "summary": f"Global Fishing Watch encounter event: alongside another vessel for "
-                                          f"{h:.1f} h (the other vessel is not in this extract).",
-                               "facts": [f"{utc(p['start'])} → {utc(p['end'])}", "Source: GFW encounters dataset"],
-                               "source": "ais", "zone_id": None, "asset_id": None, "other_vessel_id": None})
         if top is not None and alert_if(src):
             sev = level_of(score)
             rest = [r["text"].split("; ")[0] for r in reasons if r["text"] != top["_en"]]
@@ -553,10 +559,10 @@ WIKI_CUTS = "https://en.wikipedia.org/wiki/2024_Baltic_Sea_submarine_cable_disru
 
 
 def build_baltic():
-    d = json.loads((CW / "replay-yi-peng-3.json").read_text())
+    d = json.loads(source("cable-watch", "data", "replay-yi-peng-3.json").read_text())
     summ = d["summary"]
     vs = d["vessels"][:56] + [v for v in d["vessels"][56:] if v["mmsi"] in BALTIC_SPECIAL]
-    fc = json.loads((CW / "cables.geojson").read_text())["features"]
+    fc = json.loads((GEO / "cables.geojson").read_text())["features"]
     cut = {"C-Lion1": CLION_CUT, "BCS East-West Interlink": BCS_CUT}
     ids = Ids()
 
@@ -661,8 +667,8 @@ def _ais_at(ship, t, t0):
 
 
 def build_skagen():
-    passes = json.loads((OA / "cache" / "track-skagen-passes.json").read_text())
-    rp = json.loads(gzip.open(OA / "data" / "tracks_skagen_2026-11-06.json.gz", "rt").read())
+    passes = json.loads(source("orbit-analyst", "cache", "track-skagen-passes.json").read_text())
+    rp = json.loads(gzip.open(source("orbit-analyst", "data", "tracks_skagen_2026-11-06.json.gz"), "rt").read())
     t0 = int(rp["t0"])
     start, end = t0 + 5 * 3600, t0 + 18 * 3600
     ships = {s["mmsi"]: s for s in rp["ships"]}
@@ -672,7 +678,7 @@ def build_skagen():
     for ps in passes:
         t = epoch(ps["pass_time"])
         hhmm = utc(t, "%H%M")
-        src = OA / "cache" / "media" / Path(ps["map_overlay"]["url"]).name
+        src = source("orbit-analyst", "cache", "media", Path(ps["map_overlay"]["url"]).name)
         url = magick_jpg(src, f"skagen-{hhmm}.jpg", width=1200, quality=78)
         (la0, lo0), (la1, lo1) = ps["map_overlay"]["bounds"]
         stats = {s["label"]: s["value"] for s in ps["stats"]}
@@ -854,270 +860,6 @@ def build_skagen():
                   "No RF layer in this case."],
     }
     return {"scenario": scenario, "assets": [], "zones": [zone], "vessels": vessels, "events": events,
-            "alerts": alerts, "actions": []}
-
-
-# ---------------------------------------------------------------- taiwan
-
-TW_BBOX = [117.5, 21.5, 123.0, 26.8]
-TW_INCIDENTS = {  # English versions of cable-watch/data/taiwan-incidents.json
-    "hongtai58": {"title": "Hong Tai 58 cuts the Taiwan–Penghu No.3 cable (TPKM3)",
-                  "summary": "Togo-flagged Hong Tai 58 anchored 0.5 nmi from the cable for about 56 h, ignored 7 "
-                             "radio calls, then zigzagged over it while weighing anchor. The captain was sentenced "
-                             "to 3 years.",
-                  "labels": ["Taiwan Coast Guard news (via Pourquoi)", "Tainan District Prosecutors Office "
-                             "indictment, 11 Apr 2025", "Nottingham Taiwan Research Hub"]},
-    "shunxin39": {"title": "Shunxin-39 damages the TPE cable",
-                  "summary": "Cameroon-flagged, Hong Kong-owned Shunxin-39 (also seen as Xingshun 39) was near the "
-                             "damaged TPE cable NE of Yeliu and switched AIS off after the coast guard told it to "
-                             "return. It was not boarded or charged.",
-                  "labels": ["New York Times, 7 Jan 2025", "IAI (2026) What Lies Beneath"]},
-    "matsu2023": {"title": "Taiwan–Matsu No.2 and No.3 cables cut",
-                  "summary": "TPKM2 was cut on 2 Feb 2023 and TPKM3 on 8 Feb; Matsu lost normal internet for about "
-                             "six weeks. Fishing boats and anchors cut Matsu's cables 27 times in 2018–2022.",
-                  "labels": ["IAI (2026) What Lies Beneath", "MEMRI, 27 Feb 2025"]},
-}
-
-
-def build_taiwan():
-    d = json.loads((CW / "taiwan-gfw.json").read_text())
-    summ = d["summary"]
-    fc = json.loads((CW / "cables-taiwan.geojson").read_text())["features"]
-    incs = json.loads((CW / "taiwan-incidents.json").read_text())
-    ids = Ids()
-    start = day_epoch(summ["start"])
-    end = day_epoch(summ["end"]) + 86400
-
-    def track_fn(src):
-        evs = src.get("path") or [{"start": s["start"], "end": s["end"], "lon": s["lon"], "lat": s["lat"],
-                                   "knots": None, "type": "loitering"} for s in src["signals"] if s.get("lon")]
-        pts = []
-        for e in sorted(evs, key=lambda e: e["start"]):
-            pts += [(e["start"], e["lon"], e["lat"], e.get("knots")), (e["end"], e["lon"], e["lat"], e.get("knots"))]
-        pts = sorted({p[0]: p for p in pts}.values())
-        return make_track(pts, max_pts=400)
-
-    inc_cables = {}
-    for inc in incs:
-        for c in inc["cables"]:
-            inc_cables.setdefault(c, []).append(inc["id"])
-    notes = {c: {"incidents": v} for c, v in inc_cables.items()}
-    assets = cable_assets(fc, lambda f: True, protected=set(inc_cables), notes=notes)
-    cable_ids = {f["properties"]["name"]: f["properties"]["id"] for f in fc}
-    zl = [ln for f in fc if f["properties"]["name"] in inc_cables for ln in lines_of(f["geometry"])]
-    rings = buffer_rings(zl, 2, 120.5, 24.5, clip=TW_BBOX, max_parts=3, simplify_m=300)
-    zones = [make_zone(f"Z-{i}", f"Incident cables corridor {i} (TPKM2, TPKM3, TPE ±2 km)", "cable",
-                       {"type": "polygon", "coordinates": ring}, created=start) for i, ring in enumerate(rings, 1)]
-    zpolys = [shapely.Polygon(r) for r in rings]
-
-    def zone_for(lon, lat):
-        p = shapely.Point(lon, lat)
-        return next((f"Z-{i}" for i, zp in enumerate(zpolys, 1) if zp.contains(p)), None)
-
-    def extra(src, v):
-        out = [f"{v['type'].capitalize()}, flag {v['flag'] or 'unknown'}, MMSI {v['mmsi']}"]
-        return out
-
-    vessels, events, alerts = signal_world_parts(
-        d["vessels"], ids, set(), cable_ids, {}, lambda s: s["tier"] == "high", extra,
-        recipients=[{"name": "Coast guard duty officer", "channel": "push"},
-                    {"name": "Cable operator NOC", "channel": "email"}],
-        actions=[{"id": "dispatch_patrol", "label": "Ask coast guard to hail the ship"},
-                 {"id": "forward_owner", "label": "Forward to cable owner"},
-                 {"id": "dismiss", "label": "Not suspicious"}],
-        path_track={v["mmsi"]: v.get("path") or [] for v in d["vessels"]}, track_fn=track_fn)
-    for e in events:
-        e["zone_id"] = zone_for(e["lon"], e["lat"]) if e["lon"] is not None else None
-    for a in alerts:
-        a["zone_id"] = next((e["zone_id"] for e in events if e["id"] == a["event_ids"][0]), None)
-    for v in vessels:
-        v["track_note"] = ("Global Fishing Watch event positions (loitering, port visits, encounters), not a full "
-                           "AIS track; the line between events is drawn straight.")
-
-    # Sentinel-1 detections with no AIS within 2 km of a cable (GFW, one row per day and grid cell)
-    fwd, _ = _aeqd(120.5, 24.5)
-    parts, owner = [], []
-    for i, f in enumerate(fc):
-        for ln in lines_of(f["geometry"]):
-            xy = np.array([(a, b) for a, b, *_ in ln])
-            x, y = fwd.transform(xy[:, 0], xy[:, 1])
-            parts.append(LineString(np.column_stack([x, y])))
-            owner.append(i)
-    tree = shapely.STRtree(parts)
-    sar = [r for r in d["sar"] if r[4]]
-    sx, sy = fwd.transform(np.array([r[0] for r in sar]), np.array([r[1] for r in sar]))
-    (pi, gi), dist = tree.query_nearest(shapely.points(sx, sy), return_distance=True, all_matches=False)
-    near = sorted(zip(pi, gi, dist), key=lambda x: x[2])[:300]
-    for k, (i, g, dm) in enumerate(sorted(near, key=lambda x: day_epoch(sar[x[0]][2])), 1):
-        lon, lat, day, n, _ = sar[i]
-        cab = fc[owner[g]]["properties"]["name"]
-        vid = f"D-{k:03d}"
-        t = day_epoch(day)
-        ob = {"id": f"SAR-TW-{k:04d}", "t": t, "lon": r5(lon), "lat": r5(lat), "length_m": None,
-              "matched_to_ais": False, "sensor": "SAR · Sentinel-1 via Global Fishing Watch", "detections": int(n),
-              "time_precision": "day", "cable_m": round(float(dm))}
-        eid = ids("E")
-        events.append({"id": eid, "vessel_id": vid, "type": "dark_period", "t": t, "end": None, "lon": r5(lon),
-                       "lat": r5(lat), "severity": "medium" if dm < 500 else "low",
-                       "summary": f"Sentinel-1 ship detection with no matching AIS, {dm:,.0f} m from {cab} ({day}).",
-                       "facts": [f"{int(n)} detection{'s' if n > 1 else ''} in this GFW grid cell on {day}",
-                                 "GFW gives the day, not the pass time", f"Cable: {cab}"],
-                       "source": "sar", "zone_id": zone_for(lon, lat), "asset_id": cable_ids.get(cab),
-                       "other_vessel_id": None})
-        vessels.append(vessel(id=vid, name="Unidentified radar target", type="unknown", observed=[ob],
-                              states=[{"start": start, "end": end, "state": "dark"}],
-                              risk={"score": 0, "level": "low", "reasons": [
-                                  {"text": f"Radar detection with no AIS {dm:,.0f} m from {cab}; not scored (GFW "
-                                           f"gives day-level detections only)", "points": 0, "source": "sar"}]}))
-
-    # "now": the moment most high/medium ships are in a flagged event at once
-    sigs = [s for v in d["vessels"] if v["score"] >= 40 for s in v["signals"] if s.get("lon")]
-    cands = [s["start"] + 3600 for s in sigs]
-    now = max(cands, key=lambda t: (sum(s["start"] <= t <= s["end"] for s in sigs), t)) if cands else end
-
-    incidents = []
-    for inc in incs:
-        en = TW_INCIDENTS.get(inc["id"], {})
-        labels = en.get("labels", [])
-        incidents.append({"id": inc["id"], "title": en.get("title", inc["id"]), "date": inc["date"], "lon": inc["lon"],
-                          "lat": inc["lat"], "approx": inc["approx"], "cables": inc["cables"],
-                          "summary": en.get("summary", ""),
-                          "sources": [{"label": labels[i] if i < len(labels) else lab, "url": url}
-                                      for i, (lab, url) in enumerate(inc["sources"])]})
-    scenario = {
-        "id": "taiwan", "case": "taiwan", "purpose": "cable",
-        "label": "Taiwan Strait · Sep–Nov 2026 · GFW events and radar", "start": start, "end": end,
-        "now": int(now), "illustrative": False, "bbox": TW_BBOX, "time_mode": "replay", "incidents": incidents,
-        "sources": [{"label": "Global Fishing Watch API v3 (loitering, port visits, encounters, SAR detections)",
-                     "url": "https://globalfishingwatch.org/our-apis/"},
-                    {"label": "TeleGeography submarine cable map (via cable-watch)",
-                     "url": "https://www.submarinecablemap.com/"},
-                    {"label": "OpenSanctions", "url": "https://www.opensanctions.org/"}] +
-                   [s for i in incidents for s in i["sources"]][:4],
-        "facts": [
-            {"label": "Non-fishing ships with GFW loitering events", "value": f"{summ['ships']} ({summ['events']:,} "
-             f"events, {summ['start']} to {summ['end']})", "source": "Global Fishing Watch API v3"},
-            {"label": "Flagged near Taiwan's cables", "value": f"{summ['flagged']} ({summ['high']} high, "
-             f"{summ['medium']} medium)", "source": "cable-watch rules on GFW events"},
-            {"label": "Radar detections with no AIS", "value": f"{summ['sar_dark']:,} on {summ['sar_days']} days; "
-             f"{summ['sar_near']} within 2 km of a cable", "source": "Global Fishing Watch (Sentinel-1)"},
-            {"label": "Hong Tai 58, 25 Feb 2025", "value": "anchored ~56 h by TPKM3, then cut it; captain sentenced "
-             "to 3 years", "source": "Tainan District Prosecutors Office"}],
-        "notes": [f"All {summ['flagged']} flagged ships, plus the 300 radar detections with no AIS that lie "
-                  "nearest a cable (of the {summ['sar_near']} within 2 km).",
-                  "Tracks are GFW event positions, not continuous AIS.", "No RF layer in this case."],
-    }
-    scenario["notes"][0] = scenario["notes"][0].replace("{summ['sar_near']}", str(summ["sar_near"]))
-    return {"scenario": scenario, "assets": assets, "zones": zones, "vessels": vessels, "events": events,
-            "alerts": alerts, "actions": []}
-
-
-# ---------------------------------------------------------------- migration
-
-def build_migration():
-    d = json.loads((AB / "real.json").read_text())
-    pts = d["points"]
-    line = [[pts[k]["lon"], pts[k]["lat"]] for k in ("tobruk", "mid", "gavdos")]
-    strip = d["strip"]
-    sb = strip["bbox"]
-    ids = Ids()
-    mid_acq = sorted(epoch(a["t"]) for a in d["s1"]["mid"]["acq"])
-    runs = sorted(strip["runs"], key=lambda r: r["t"])
-    images, vessels, events, alerts = [], [], [], []
-    k = 0
-    for run in runs:
-        t = epoch(run["t"])
-        url = magick_jpg(AB / run["png"], Path(run["png"]).stem + ".jpg", quality=82)
-        images.append({"id": Path(run["png"]).stem, "label": f"Sentinel-{run['platform'][1:]} {run['orbit']} pass · "
-                       f"{utc(t, '%-d %b %Y %H:%M')} UTC · open-sea strip", "url": url, "bounds": sb, "t": t,
-                       "source": "https://planetarycomputer.microsoft.com/dataset/sentinel-1-grd"})
-        seen, small = set(), []
-        for det in run["dets"]:
-            key = (det["lon"], det["lat"], det["len_m"])
-            if key in seen:  # the pipeline listed one blob twice on 4 Nov
-                continue
-            seen.add(key)
-            k += 1
-            vid = f"D-{k:02d}"
-            L = det["len_m"]
-            ob = {"id": f"SAR-LY-{k:03d}", "t": t, "lon": r5(det["lon"]), "lat": r5(det["lat"]), "length_m": L,
-                  "matched_to_ais": False, "ais_checked": False, "contrast_db": det["contrast_db"],
-                  "sensor": f"SAR · Sentinel-{run['platform'][1:]} IW GRD ({run['orbit']} pass, Planetary Computer)",
-                  "image_url": url, "note": "radar target, not checked against AIS; length ±20 m"}
-            is_small = L < 40
-            eid = ids("E")
-            size = "trawler-size or smaller" if is_small else ("40–100 m" if L < 100 else "ship-size, ≥100 m")
-            events.append({"id": eid, "vessel_id": vid, "type": "zone_entry", "t": t, "end": None, "lon": ob["lon"],
-                           "lat": ob["lat"], "severity": "medium" if is_small else "low",
-                           "summary": f"Radar target ~{L} m ({size}) in the corridor at {utc(t, '%-d %b %H:%M')} UTC, "
-                                      f"not checked against AIS.",
-                           "facts": [f"Contrast {det['contrast_db']} dB over the sea around it", "Length ±20 m",
-                                     f"{run['platform']} {run['orbit']} pass"],
-                           "source": "sar", "zone_id": "Z-1", "asset_id": "corridor", "other_vessel_id": None,
-                           "image_url": url})
-            reasons = [{"text": f"{'Small' if is_small else 'Ship-size'} radar target (~{L} m) in the crossing "
-                                f"corridor, not checked against AIS", "points": 50 if is_small else 10,
-                        "source": "sar"}]
-            sc = reasons[0]["points"]
-            vessels.append(vessel(id=vid, name="Radar target (not checked against AIS)", type="unknown",
-                                  length_m=L, observed=[ob], states=[{"start": t - 3600, "end": t + 3600,
-                                                                      "state": "dark"}],
-                                  risk={"score": sc, "level": level_of(sc), "reasons": reasons,
-                                        "rules": "Skynet corridor watch: < 40 m targets score 50, others 10"}))
-            if is_small:
-                small.append((vid, eid, ob))
-        if small:
-            nxt = next((a for a in mid_acq if a > t + 600), None)
-            facts = [f"~{o['length_m']} m at {o['lat']:.3f} N, {o['lon']:.3f} E" for _, _, o in small][:2]
-            facts.append("Not checked against AIS; length ±20 m; could be a fishing boat")
-            facts.append(f"Next Sentinel-1 look mid-corridor: {utc(nxt)} ({(nxt - t) / 3600:.0f} h later)"
-                         if nxt else "No later Sentinel-1 look in the 60-day record")
-            alerts.append({"id": None, "vessel_id": small[0][0], "event_ids": [e for _, e, _ in small],
-                           "zone_id": "Z-1", "t": t + 53 * 60, "severity": "medium",
-                           "headline": f"{len(small)} small radar target{'s' if len(small) > 1 else ''} in the "
-                                       f"corridor at {utc(t, '%-d %b %H:%M')} UTC: check with rescue coordination",
-                           "facts": facts,
-                           "actions": [{"id": "forward_rcc", "label": "Forward to rescue coordination centre"},
-                                       {"id": "task_satellite", "label": "Request another satellite look"},
-                                       {"id": "dismiss", "label": "Not a boat in distress"}],
-                           "recipients": [{"name": "Rescue coordination centre duty officer", "channel": "email"},
-                                          {"name": "NGO search-and-rescue desk", "channel": "push"}],
-                           "status": "open", "fires_after": "median capture-to-product latency (53 min)"})
-    for i, a in enumerate(alerts, 1):
-        a["id"] = f"A-{i:04d}"
-    last = epoch(runs[-1]["t"])
-    s1m = d["s1"]["mid"]["stats"]
-    lat = d["s1_latency_min"]
-    max_gap = max(d["s1"][p]["stats"]["max_gap_h"] for p in ("tobruk", "mid", "gavdos"))
-    zone = make_zone("Z-1", "Search and rescue corridor (Tobruk → south of Gavdos)", "custom",
-                     {"type": "corridor", "line": line, "width_km": 33}, asset_id="corridor",
-                     recipients=[{"name": "Rescue coordination centre duty officer", "channel": "email", "address": "",
-                                  "min_severity": "medium", "quiet_hours": None}], created=epoch(runs[0]["t"]))
-    asset = {"id": "corridor", "alias": "Corridor", "name": "Libya → Crete crossing corridor (Tobruk → south of Gavdos)",
-             "kind": "route", "geometry": {"type": "LineString", "coordinates": line}, "owner": "",
-             "source": "orbit-abundance route points", "protected": True}
-    scenario = {
-        "id": "migration", "case": "migration", "purpose": "custom",
-        "label": "Libya → Crete corridor · Sentinel-1 strip passes, 3–10 Nov 2026", "start": epoch(runs[0]["t"]) - 6 * 3600,
-        "end": last + 8 * 3600, "now": last + 40 * 60, "illustrative": False, "bbox": [22.9, 31.8, 25.2, 35.1],
-        "time_mode": "replay", "images": images,
-        "sources": [{"label": "Sentinel-1C/1D IW GRD, Microsoft Planetary Computer",
-                     "url": "https://planetarycomputer.microsoft.com/dataset/sentinel-1-grd"},
-                    {"label": "Paolo et al., Nature 2024 (Sentinel-1 recall vs vessel length)",
-                     "url": "https://www.nature.com/articles/s41586-023-06825-8"},
-                    {"label": "orbit-abundance pipeline (revisit, latency, strip detector)", "url": ""}],
-        "facts": [
-            {"label": "Sentinel-1 looks per week, mid-corridor", "value": f"{s1m['per_week']} (60 days)",
-             "source": "Planetary Computer STAC record"},
-            {"label": "Longest blind gap", "value": f"{max_gap:.0f} h", "source": "Planetary Computer STAC record"},
-            {"label": "Median capture-to-product", "value": f"{lat['median']:.0f} min (n={lat['n']})",
-             "source": "ESA processing timestamps"},
-            {"label": "Modelled: 25 m boats detected", "value": "~27% today → ~95% with 100 wide-swath radar "
-             "satellites", "source": "orbit-abundance simulator (modelled)"}],
-        "notes": ["Detections are bright objects on water. They are not checked against AIS; length is ±20 m.",
-                  "Ships moored within 150 m of the shore are excluded.", "No AIS or RF layer in this case."],
-    }
-    return {"scenario": scenario, "assets": [asset], "zones": [zone], "vessels": vessels, "events": events,
             "alerts": alerts, "actions": []}
 
 
@@ -1308,7 +1050,6 @@ def build_warrisk():
 # ---------------------------------------------------------------- cache + entry points
 
 BUILDERS = {"baltic-2024": build_baltic, "dark-skagen": build_skagen, "war-risk": build_warrisk}
-# build_taiwan and build_migration work but are cut from the demo (not listed in CASES or BUILDERS).
 _cache: dict[str, dict] = {}
 _lock = threading.Lock()
 WARRISK_TTL = 600
@@ -1345,8 +1086,9 @@ def get_world(case_id: str) -> dict:
                 c = _cache[case_id] = {"s": _dump(build_warrisk()), "at": time.time(), "feeds": feeds}
         elif c is None:
             p = REAL / f"{case_id}.json"
-            s = p.read_text() if p.exists() else _dump(build(case_id))
-            c = _cache[case_id] = {"s": s, "at": time.time()}
+            if not p.exists():
+                raise KeyError(f"{case_id} world not built yet (python -m server.real.cases build {case_id})")
+            c = _cache[case_id] = {"s": p.read_text(), "at": time.time()}
     return apply_presets(json.loads(c["s"]))
 
 

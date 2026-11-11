@@ -21,7 +21,7 @@ from . import fusion
 from .zones import PRESETS
 
 ROOT = Path(__file__).resolve().parent.parent
-CW_DATA = ROOT.parent / "cable-watch" / "data"
+GEO = ROOT / "data" / "geo"
 OUT = ROOT / "data" / "world.json"
 
 START, END, NOW = 1794355200, 1794384000, 1794382200
@@ -213,7 +213,7 @@ def assets():
     out = [{"id": "cable-a", "alias": "Cable A", "name": "Estlink 2 (approx. route)", "kind": "power",
             "geometry": {"type": "LineString", "coordinates": [list(p) for p in CABLE_A]},
             "owner": "Grid operator (illustrative)", "source": "approximate", "protected": True}]
-    fc = json.loads((CW_DATA / "cables.geojson").read_text())
+    fc = json.loads((GEO / "cables.geojson").read_text())
     by_id = {f["properties"]["id"]: f for f in fc["features"]}
     for src, aid, alias, kind in CONTEXT_CABLES:
         f = by_id.get(src)
