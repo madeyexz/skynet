@@ -6,3 +6,7 @@ data/reports/
 node_modules/
 .wrangler/
 data/source/
+.py/
+pydeps/
+browsers/
+.requirements.txt

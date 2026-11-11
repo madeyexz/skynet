@@ -1,0 +1,10 @@
+{
+  "targets": {
+    "skynet": {
+      "on": "hackathon-yc/skynet-box",
+      "name": "skynet",
+      "branch": "main",
+      "root": "skynet"
+    }
+  }
+}

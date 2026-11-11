@@ -8,4 +8,11 @@ rm -f .py/.gitignore .py/cpython-3.12-linux-x86_64-gnu   # uv adds a broken mino
 PY=$(ls -d .py/cpython-3.12.*-linux-x86_64-gnu | head -n 1)/bin/python3.12
 uv export --quiet --frozen --no-hashes --no-dev --no-emit-project -o .requirements.txt
 uv pip install --quiet --python "$PY" --target pydeps -r .requirements.txt
-npx -y @puppeteer/browsers@2 install chrome-headless-shell@stable --path browsers >/dev/null
+# Chrome for Testing's headless shell (the @puppeteer/browsers installer fails to unzip on new Node)
+CFT=https://storage.googleapis.com/chrome-for-testing-public
+VER=$(curl -fsS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
+  | "$PY" -c 'import json,sys; print(json.load(sys.stdin)["channels"]["Stable"]["version"])')
+rm -rf browsers && mkdir -p browsers/chrome-headless-shell/linux-$VER
+curl -fsSL -o browsers/chs.zip "$CFT/$VER/linux64/chrome-headless-shell-linux64.zip"
+unzip -q browsers/chs.zip -d browsers/chrome-headless-shell/linux-$VER && rm browsers/chs.zip
+test -x browsers/chrome-headless-shell/linux-$VER/chrome-headless-shell-linux64/chrome-headless-shell
