@@ -55,17 +55,19 @@ Keys: `Space` plays or pauses the clock. `1` `2` `3` switch Detect, Alert and Re
 
 Click **Reset** in the top bar, or run `curl -X POST localhost:8787/api/reset`. This reseeds the world and clears operator actions, reports and user zones; the seeded Cable A corridor stays. `rm data/state.json` does the same while the server is stopped.
 
-## Deploy (Cloudflare Workers + Containers)
+## Deploy
 
-The hosted demo is a Worker (`worker/index.js`) in front of one container that runs this FastAPI app and Chromium for PDFs (`Dockerfile`). It needs Docker running locally, a Workers Paid plan, and an API token with Workers Scripts: Edit, Containers: Edit and Account Settings: Read.
+**Amp Box (the hosted demo).** `.amp/box.yaml` builds a self-contained release with `scripts/box-build.sh`: a relocatable Python 3.12, the pip dependencies and Chrome's headless shell for PDFs. `scripts/box-start.sh` runs it read-only and keeps state in the deployment's data directory. From `skynet/`:
 
 ```sh
-npm install
-npx wrangler deploy                                       # builds the image, pushes it, deploys the Worker
-openssl rand -hex 24 | npx wrangler secret put SKYNET_ADMIN_KEY
+amp boxes deploy --on <namespace>/<box> --name skynet --repo https://github.com/madeyexz/skynet.git
 ```
 
-When `SKYNET_ADMIN_KEY` is set, `/api/reset`, zone create/edit/delete, `POST /v1/zones` and `POST /v1/webhooks` need the header `x-admin-key`. The app asks for the key once in the browser and keeps it in localStorage. Webhook URLs must be public http(s) hosts; private, loopback and link-local addresses are refused. State lives in the one container and resets when it sleeps (after 2 h idle).
+Set the deployment secret `SKYNET_ADMIN_KEY` and redeploy. Until it is set, the hosted app refuses admin writes (503).
+
+**Cloudflare Workers + Containers (alternative).** `wrangler.jsonc` puts a Worker (`worker/index.js`) in front of one container built from `Dockerfile`. It needs Docker, a Workers Paid plan, and an API token with Workers Scripts: Edit, Containers: Edit and Account Settings: Read: `npm install && npx wrangler deploy`, then `npx wrangler secret put SKYNET_ADMIN_KEY`.
+
+When `SKYNET_ADMIN_KEY` is set, `/api/reset`, zone create/edit/delete, `POST /v1/zones` and `POST /v1/webhooks` need the header `x-admin-key`. The app asks for the key once in the browser and keeps it in localStorage. Webhook URLs must be public http(s) hosts; private, loopback and link-local addresses are refused.
 
 ## Data API
 

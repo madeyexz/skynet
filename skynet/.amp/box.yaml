@@ -1,0 +1,8 @@
+build: sh scripts/box-build.sh
+source: false
+artifacts: [.py, pydeps, browsers, server, web, data, scripts]
+services:
+  web:
+    command: sh scripts/box-start.sh
+    env:
+      SKYNET_REQUIRE_ADMIN: "1"

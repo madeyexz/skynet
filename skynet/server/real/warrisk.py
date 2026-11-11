@@ -19,6 +19,7 @@ import gzip
 import io
 import json
 import math
+import os
 import re
 import threading
 import time
@@ -31,7 +32,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 EV = json.loads((ROOT / "data" / "real" / "warrisk_evidence.json").read_text())
-CACHE = ROOT / "data" / "cache"
+CACHE = Path(os.environ.get("SKYNET_DATA_DIR") or ROOT / "data") / "cache"  # the release may be read-only
 TTL = 6 * 3600
 UA = {"User-Agent": "Mozilla/5.0 skynet war-risk (hackathon demo)"}
 

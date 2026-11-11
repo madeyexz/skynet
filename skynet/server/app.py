@@ -31,6 +31,7 @@ WEB = ROOT / "web"
 API_KEY = os.environ.get("SKYNET_API_KEY", "sk_live_skynet_demo")  # public /v1 read key (printed in the docs)
 ADMIN_KEY = os.environ.get("SKYNET_ADMIN_KEY")  # when set, write routes need `x-admin-key`; unset = open (local dev)
 ALLOW_PRIVATE_WEBHOOKS = os.environ.get("SKYNET_ALLOW_PRIVATE_WEBHOOKS") == "1"  # local testing only
+REQUIRE_ADMIN = os.environ.get("SKYNET_REQUIRE_ADMIN") == "1"  # hosted: refuse writes when the key is missing
 
 
 def _find_chrome() -> str:
@@ -72,6 +73,8 @@ async def _admin_key_required(_req: Request, _exc: AdminKeyRequired):
 
 def _admin(x_admin_key: str | None) -> None:
     """Write routes: require `x-admin-key` when SKYNET_ADMIN_KEY is set; open when it is unset (local dev)."""
+    if REQUIRE_ADMIN and not ADMIN_KEY:
+        raise HTTPException(503, "Admin writes are disabled until SKYNET_ADMIN_KEY is configured.")
     if ADMIN_KEY and not hmac.compare_digest((x_admin_key or "").encode(), ADMIN_KEY.encode()):
         raise AdminKeyRequired()
 
